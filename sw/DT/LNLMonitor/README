@@ -1,0 +1,41 @@
+Uso:
+
+> source .root.setup
+
+Per entrare in root:
+> root 
+
+Dall'ambiente root:
+root [1] .L radmuMonitorLNL.C++
+root [2] radmuMonitorLNL("NOMEFILE")
+
+* il NOMEFILE e' il nome del run scritto in:
+/data/radmu/flat/dataROS25/NOMEFILE
+
+mettere solo NOMEFILE, non tutto il path!
+
+Alcune indicazioni del programma:
+
+1) per cambiare le finestre dei tempi editare:
+//occupancy histo cuts
+int minTime = 1200;
+int maxTime = 2200;
+
+2) per cambiare le finestre dei tempi per riempire i plot I-II hit editare:
+//hit difference histo cuts
+int minTimeHit = 1200;
+int maxTimeHit = 2200;
+
+3) per far andare piu' velocemente diminuire la frequenza di update :
+    	//update TDC plots
+	if(words/1000000. == int(words/1000000.))
+
+E' necessario ricompilare il programma con l'istruzione:
+root [1] .L radmuMonitorLNL.C++
+dopo OGNI modifica del programma!
+
+
+NB: La struttura del file di mappa e':
+
+DDU     ROS     ROB     TDC     CH      WH      ST      SE      SL      LAY     TUBE
+
