@@ -7,3 +7,12 @@ Simple instructions to start using GIT
 > git add "file or dir to add"
 > git commit -m "message to add to the commit"
 > git push
+
+If several people are working at the same code, please create branches
+----------------------------------------------------------------------
+    Go to your new repository LEMMA
+    Click the drop down at the top of the file list that says branch: master.
+    Type a branch name, my-branch into the new branch text box.
+    Select the blue Create branch box or hit “Enter” on your keyboard.
+    
+    
