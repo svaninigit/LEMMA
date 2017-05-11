@@ -1,2 +1,9 @@
 # LEMMA
 Low Emittance Mu+ Mu- Accelerator Repository
+
+Simple instructions to start using GIT
+------------------------------------------------------------
+> git clone https://github.com/svaninigit/LEMMA.git
+> git add "file or dir to add"
+> git commit -m "message to add to the commit"
+> git push
