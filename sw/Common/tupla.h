@@ -1,5 +1,6 @@
 
    // Declaration of leaf types
+   Int_t           iev;
    Int_t           nhits;
    // MC variables as defined by M. Dreucci 
    Int_t           subdet[100];   //[nhits]
@@ -22,7 +23,6 @@
    Double_t        pyvdir[100];   //[nhits]
    Double_t        pzvdir[100];   //[nhits]
    Int_t           pro[100];   //[nhits]
-   Int_t           iev[100];   //[nhits]
    Int_t           istep[100];   //[nhits]
    Int_t           inextstep[100];   //[nhits]
    // Additional variables (Tue May  9 2017)
