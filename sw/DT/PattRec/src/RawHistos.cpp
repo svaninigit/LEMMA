@@ -1,5 +1,5 @@
 #include "RawHistos.h"
-#include "../PattRec/HITCollection.h"
+#include "HITCollection.h"
 
 
 RawHistos::RawHistos() {

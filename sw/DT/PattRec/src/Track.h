@@ -26,7 +26,7 @@ class Track {
  public:
 
   // default constructor
-  Track(){};
+  Track();
 
   // default destructor
   ~Track();

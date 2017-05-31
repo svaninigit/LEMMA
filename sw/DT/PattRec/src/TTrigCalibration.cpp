@@ -10,7 +10,7 @@ TTrigCalibration::TTrigCalibration() {
   DEBUG_TTRIG = 0;
   DEBUG_TTRIGBIN = 0;
 
-  hDebugFile = new TFile("DTTimeBoxFitter.root", "RECREATE");
+  hDebugFile = new TFile("./output/DTTimeBoxFitter.root", "RECREATE");
 
 
   // init histograms and variables

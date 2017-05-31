@@ -1,7 +1,7 @@
 #include "RawAnalyzer.h"
 
 // output flags
-static const bool DUMP_HISTOS = 0;   // fill root histograms
+static const bool DUMP_HISTOS = 1;   // fill root histograms
 static const bool CREATE_TREE = 1; // fill root file RADMU
 static const bool CREATE_HITBANK = 0; // fill HitBank file
 static const bool DUMP_STAT = 1;   // save statistics on a txt file
@@ -53,6 +53,7 @@ RawAnalyzer::RawAnalyzer() {
   // init TOMTOOL 
   _rawHistos = NULL;
   _ttrigCalib=NULL;
+  hits=NULL;
 //   _imgAnalyzer =NULL;
     
   return;
@@ -224,16 +225,20 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
 		  nTRAILER ++;
 		  
           track=new Track();
-          if(ttrig==0)
-          {
+          if(!hits)
+            cout << "Sono in trailer, Hits nullo!!, check header " << check_header << endl;
 
-              //  cut sulle hit per doppia lettura front end //
+          if(ttrig==0 && hits)
+           {
+              //cut sulle hit per doppia lettura front end //
               //hits->Clean2FE();
 
               track->SelectTrack(hits,corr);
               if(track->Track_IsGood()){
-                  if(DUMP_HISTOS)
+                  if(DUMP_HISTOS){
+
                       dump->dumpHisto(track,hits,numEvent);
+                  }
                   if(CREATE_TREE)
                       dump->dumpTree(track,hits,numEventDAQ,tree);
                   if(CREATE_HITBANK)
@@ -251,7 +256,7 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
 		  
 		  // if _rawHistos has been initialized, and fill flag is true, go fill
 		  
-		  if(_rawHistos && _rawHistos->flagFillHistos()){
+		  if(_rawHistos && _rawHistos->flagFillHistos() && hits){
 		    _rawHistos->fillHistos(hits);
 		    if(numEvent%100==0)
 		      _rawHistos->updateCanvas(_rawHistos->getCanvas());
@@ -259,7 +264,7 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
 		  
 		  // if _ttrigCalib has been initialized, and fill flag is true, go fill
 
-		  if(_ttrigCalib && _ttrigCalib->flagFillHistos()){
+		  if(_ttrigCalib && _ttrigCalib->flagFillHistos() && hits){
 		    _ttrigCalib->fillHistos(hits);
 		    if(numEvent%10000==0){
 		      _ttrigCalib->computeTTrig(_ttrigCalib->getCanvas());
@@ -273,7 +278,8 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
 		      delete track;
 		      track=NULL;
 		    }
-		  delete hits;
+              if(hits)
+		    delete hits;
 		  hits=NULL;
 
 		  check_header=0;
@@ -324,7 +330,7 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
 	      // _ttrigCalib->setCanvas(1);
 	      _ttrigCalib->computeTTrig(_ttrigCalib->getCanvas());
 	      fC1->Update();
-	      char  ttrigName[20];
+          char  ttrigName[100];
 	      sprintf(ttrigName,"./ttrig/ttrig_%d.txt",runN); 
 	      _ttrigCalib->dumpTTrigs(ttrigName);
 	    } 
@@ -378,7 +384,7 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
     _ttrigCalib->computeTTrig(_ttrigCalib->getCanvas());
     fC1->Update();
     
-    char  ttrigName[20];
+    char  ttrigName[100];
     sprintf(ttrigName,"./ttrig/ttrig_%d.txt",runN); 
     _ttrigCalib->dumpTTrigs(ttrigName);
   }
@@ -396,7 +402,7 @@ void RawAnalyzer::fillMap(){
   if(DEBUG_RA_FLAG) 
     myfile << "reading map" << endl;
   
-  ifstream file("legnaro2ROS25.txt");//"legnaro2ROS25-prototipoFRANCO.txt");
+  ifstream file("utils/legnaro2ROS25.txt");//"legnaro2ROS25-prototipoFRANCO.txt");
   if(!file.is_open()){
     cout << "ERROR : no channel map file found - exiting ! " << endl;
     exit(1);
@@ -503,7 +509,7 @@ void RawAnalyzer::fillMap_t0()
   if(DEBUG_RA_FLAG) 
     myfile << "reading t0" << endl;
   
-  ifstream file("t0.txt");
+  ifstream file("utils/t0.txt");
   if(!file.is_open()){
     cout << "WARNING : no t0 file found... " << endl;
   }  
@@ -541,7 +547,7 @@ void RawAnalyzer::checkMap_t0()
   if(DEBUG_RA_FLAG || DEBUG_RA_MAP_t0) 
     myfile << "checking map t0" << endl;
   
-  ifstream file("t0.txt");
+  ifstream file("utils/t0.txt");
   if(!file.is_open()){
     cout << "WARNING : no t0 file found... " << endl;
   }  
@@ -592,7 +598,7 @@ void RawAnalyzer::fillMap_ttrig(int runTrig)
   if(DEBUG_RA_FLAG) 
     myfile << "reading ttrig" << endl;
   
-  char fn[20];
+  char fn[100];
   sprintf(fn,"./ttrig/ttrig_%d.txt",runTrig);
   ifstream file(fn);
   if(!file.is_open()){
@@ -630,7 +636,7 @@ void RawAnalyzer::checkMap_ttrig(int runTrig)
   if(DEBUG_RA_FLAG || DEBUG_RA_MAP_ttrig) 
     myfile << "checking map ttrig" << endl;
   
-  char fn[20];
+  char fn[100];
   sprintf(fn,"./ttrig/ttrig_%d.txt",runTrig);
   ifstream file(fn);
   if(!file.is_open()){

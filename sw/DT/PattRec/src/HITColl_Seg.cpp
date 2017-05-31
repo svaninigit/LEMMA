@@ -45,25 +45,24 @@ void HITColl_Seg::selectHIT(HITCollection * hits, int CH, bool phi)
       SL2=0;
     }
     
-    // 20170405 if hit is in the layer with HV modified, to be excluded from fit
+// 20170405 if hit is in the layer with HV modified, to be excluded from fit
     if( hit->CH_ID()==CH_HVmod && hit->SL_ID()==SL_HVmod && hit->L_ID()==LAY_HVmod)
        continue;
-    
 
     if( hit->CH_ID()==CH && (hit->SL_ID()==SL1 || hit->SL_ID()==SL2) )
-      if( hit->dtime_in()>-10. && hit->dtime_in()<410.5 ){
-                  addHIT(hit);
-                  if(DEBUG_HITCOLL_S)
-                    printHIT(j);
-                  j++;
-      }
+      if( hit->dtime_in()>-10. && hit->dtime_in()<410.5 )
+	{
+	  addHIT(hit);
+	  if(DEBUG_HITCOLL_S)
+	    printHIT(j);
+	  j++;
+	}
       else {
-                hit->Change_LCode(false);
-                hit->Change_RCode(false);
+	hit->Change_LCode(false);
+	hit->Change_RCode(false);
       }
     
-  } // end hit loop
-
+  }
   return;
 }
 

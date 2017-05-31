@@ -36,7 +36,7 @@
 #include "TFrame.h"
 #include "TString.h"
 #include "TFile.h"
-#include "../PattRec/HITCollection.h"
+#include "HITCollection.h"
 
 
 class TTrigCalibration {

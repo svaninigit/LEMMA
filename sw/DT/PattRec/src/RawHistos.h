@@ -24,7 +24,7 @@
 #include "TFile.h"
 
 // TOM classes
-#include "../PattRec/HITCollection.h"
+#include "HITCollection.h"
 
 
 class RawHistos {

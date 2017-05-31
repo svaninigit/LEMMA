@@ -1,12 +1,18 @@
 #include "Track.h"
 
+Track::Track() { 
+  for(int i=0;i<6;i++) {
+    seg[i]=NULL;
+    hit_seg[i]=NULL;
+  }
+}
+
 Track::~Track()
 {
 
   for(int i=0;i<6;i++) {
-    delete seg[i]; seg[i]=NULL;
-    //    delete hit_seg_glo[i]; hit_seg_glo[i]=NULL;
-    delete hit_seg[i]; hit_seg[i]=NULL;
+    if(seg[i]) delete seg[i];
+    if(hit_seg[i]) delete hit_seg[i];
   }
 
   return;

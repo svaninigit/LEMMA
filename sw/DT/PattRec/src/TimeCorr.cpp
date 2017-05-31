@@ -10,13 +10,11 @@ TimeCorr::~TimeCorr()
 //void TimeCorr::Init(){
 void TimeCorr::InitSpline(){
   
-  fsp = new TFile("splineN8new.root");
-  //fsp = new TFile("spline8G2.root");
+  fsp = new TFile("utils/splineN8new.root");
   for(int slo=0;slo<8;slo++){
     char fn[20];
     sprintf(fn,"sp%d",slo);
     spline[slo]=(TSpline3*)gDirectory->Get(fn);
-    //spline[slo]=(TF1*)gDirectory->Get(fn);
     }
   /*
     spline[0]=(TSpline3*)gDirectory->Get("sp0") ;  

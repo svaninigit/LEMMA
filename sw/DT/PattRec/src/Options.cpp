@@ -27,7 +27,7 @@
 
 #include <iostream>
 #include <fstream>
-#include "Core/Options.h"
+#include "Options.h"
 
 #include <boost/program_options.hpp>
 
@@ -36,8 +36,6 @@
 //template<> boost::program_options::typed_value<int> boost::program_options::value<int>();
 //template<> boost::program_options::typed_value<int> boost::program_options::value<int>(int *);
 
-
-namespace uLib {
 
 Options::Options(const char *str) :
     m_global(str),
@@ -79,8 +77,6 @@ bool Options::count(const char *str) const
     return (m_vm.count(str));
 }
 
-
-} // uLib
 
 
 

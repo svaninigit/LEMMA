@@ -105,7 +105,7 @@ void Save_HistosAndTree::dumpHB(Track *track, HITCollection *hits,int numEvent,o
       TRACK_HB track_HB;
       
       int nlay=8; 
-      double res_glo[nmaxseg][nlay]; 
+      double res_glo[nmaxseg][nlay];
       int seg=0; 
       for(int jj=0;jj<nmaxseg;jj++)
 	for(int j=0;j<nlay;j++){
@@ -154,7 +154,7 @@ void Save_HistosAndTree::dumpHB(Track *track, HITCollection *hits,int numEvent,o
       } // close loop on hits
       
       
-      for(int i=0; i<nmaxseg; i++){	
+      for(int i=0; i<nmaxseg; i++){
 	track_HB.chamber=-999;
 	track_HB.nPoints = -999;
 	track_HB.XorZ=-999;
@@ -515,7 +515,7 @@ void Save_HistosAndTree::dumpTree_Track(Track *track, HITCollection *hits,int nu
 	if(i==3 && track->Get_IsGood_glo(3) ) k_glo=-2300-track->Get_NPT_glo(i);
 	
 	fillVar(k,inseg,track->Get_Slope(i),track->Get_X0(i),track->Get_T0(i),track->Get_Chi2(i),res,i);
-	if(i<nmaxseg_glo)
+    if(i<nmaxseg_glo)
 	  fillVar_glo(k_glo,inseg,track->Get_Slope_glo(i),track->Get_erSlope_glo(i),track->Get_X0_glo(i),track->Get_erX0_glo(i),track->Get_T0_glo_fin(i),track->Get_Chi2_glo(i),res_glo,i);
   
 	if(DEBUG_STORETRACK) 
@@ -545,7 +545,7 @@ void Save_HistosAndTree::dumpTree_Track(Track *track, HITCollection *hits,int nu
 
 
 void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEvent){
-  
+
   if(track->Track_IsGood()){
     if(track->Get_IsGood(0) && track->Get_IsGood(1)){
       if(track->Get_IsGood(2) && track->Get_IsGood(3)){
@@ -685,7 +685,7 @@ void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEven
       } // close if(track->Get_NPT_glo(3)==4)
     } // close if(track->Get_IsGood(0) && track->Get_IsGood(1))
   } // close if(track->Track_IsGood())
-  
+
   if(track->Track_IsGood()){
     if(track->Get_IsGood(0) && track->Get_IsGood(1)){
       
@@ -698,8 +698,9 @@ void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEven
 	int nlay=0; 
 	if(i==0 || i==2) nlay=8;
 	else nlay=4;
-	double res[nlay]; for(int j=0;j<nlay;j++) res[j]=-999.;
-       	double res_glo[nlay]; for(int j=0;j<nlay;j++) res_glo[j]=-999.; 
+    double res[nlay];
+    for(int j=0;j<nlay;j++) res[j]=-999.;
+    double res_glo[nlay]; for(int j=0;j<nlay;j++) res_glo[j]=-999.;
 	
 	// distance track-wire ...to compute linear correction
 	double dft[nlay]; 
@@ -714,44 +715,46 @@ void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEven
 	  for(int j=0;j<nlay;j++) yhit[j]=-999.; 
 	}
 
-	int jres=0;
-	for(int ih=0;ih<hits->Get_NumberHITS();ih++){
-	  HIT *hit=hits->hit(ih);
-	  if(hit->code_ID().first==1 || hit->code_ID().second==1){
-	    if( (hit->CH_ID()==11 || hit->CH_ID()==10) && hit->SL_ID()==3 )
-	      jres=4+hit->L_ID()-1;
-	    else 
-	      jres=hit->L_ID()-1;
+
+    int jres=0;
+    for(int ih=0;ih<hits->Get_NumberHITS();ih++){
+      HIT *hit=hits->hit(ih);
+      if(hit->code_ID().first==1 || hit->code_ID().second==1){
+        if( (hit->CH_ID()==11 || hit->CH_ID()==10) && hit->SL_ID()==3 )
+          jres=4+hit->L_ID()-1;
+        else
+          jres=hit->L_ID()-1;
+
+        if(track->Get_IsGood(i)){
+         if(hit->code_ID().first==1)
+              res[jres]=hit->Get_XPair(hit->dtime()).first - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
+
+            if(hit->code_ID().second==1)
+            res[jres]=hit->Get_XPair(hit->dtime()).second - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
+          if(calcola_spline){
+        dft[jres]= hit->x_wire_ID() - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
+        if(hit->code_ID().first==1)
+          tdrift[jres]= -(hit->dtime());
+        if(hit->code_ID().second==1)
+          tdrift[jres]= hit->dtime();
+        if(hit->code_ID().first==1)
+          xhit[jres]= hit->Get_XPair(hit->dtime()).first;
+        if(hit->code_ID().second==1)
+          xhit[jres]= hit->Get_XPair(hit->dtime()).second;
+        yhit[jres]= hit->y_wire_ID();
+          }
+        }
 	    
-	    if(track->Get_IsGood(i)){
-	      if(hit->code_ID().first==1)
-		res[jres]= hit->Get_XPair(hit->dtime()).first - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
-	      if(hit->code_ID().second==1) 
-		res[jres]= hit->Get_XPair(hit->dtime()).second - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
-	      
-	      if(calcola_spline){
-		dft[jres]= hit->x_wire_ID() - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
-		if(hit->code_ID().first==1)
-		  tdrift[jres]= -(hit->dtime());      
-		if(hit->code_ID().second==1)
-		  tdrift[jres]= hit->dtime();      
-		if(hit->code_ID().first==1)
-		  xhit[jres]= hit->Get_XPair(hit->dtime()).first;
-		if(hit->code_ID().second==1)
-		  xhit[jres]= hit->Get_XPair(hit->dtime()).second;
-		yhit[jres]= hit->y_wire_ID();
-	      }
-	    }
-	    
-	    if(track->Get_IsGood_glo(i)){
-	      if(hit->code_ID().first==1) 
-		res_glo[jres]= hit->Get_XPair(hit->dtime()).first - (-1*0.00547*track->Get_T0_glo(i)+track->Get_Slope_glo(i)*(hit->y_wire_ID())+track->Get_X0_glo(i));
-	      if(hit->code_ID().second==1) 
-		res_glo[jres]= hit->Get_XPair(hit->dtime()).second - (1*0.00547*track->Get_T0_glo(i)+track->Get_Slope_glo(i)*(hit->y_wire_ID())+track->Get_X0_glo(i));
-	    }
-	  }
-	} // close loop on hits
+        if(track->Get_IsGood_glo(i)){
+          if(hit->code_ID().first==1)
+        res_glo[jres]= hit->Get_XPair(hit->dtime()).first - (-1*0.00547*track->Get_T0_glo(i)+track->Get_Slope_glo(i)*(hit->y_wire_ID())+track->Get_X0_glo(i));
+          if(hit->code_ID().second==1)
+        res_glo[jres]= hit->Get_XPair(hit->dtime()).second - (1*0.00547*track->Get_T0_glo(i)+track->Get_Slope_glo(i)*(hit->y_wire_ID())+track->Get_X0_glo(i));
+        }
+      }
+    } // close loop on hits
 	
+
 	if(i==0)  
 	  for(int ii=0;ii<8;ii++) {
 	    h_resCH1phi_glo[ii]->Fill(10000.*res_glo[ii]);
@@ -782,7 +785,7 @@ void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEven
 	    h_resSL2[ii]->Fill(10000.*res[ii]);
  	    h_resSLdown->Fill(10000.*res[ii]);
 	  }
-	
+
 	if(calcola_spline && 
 	   ( (track->Get_NPT(i)==8 && (i==0 || i==2) ) 
 	     || 
@@ -802,7 +805,7 @@ void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEven
 	  double  b[8];     /* b[layer]           */
 	  double resid[8];	
 	  
-	  
+
 	  for(int slo=0;slo<8;slo++){ // cut on slopes (8 intervals)
 	    
 	    if( TMath::Abs(track->Get_Slope(i))>=m[slo] && TMath::Abs(track->Get_Slope(i))<m[slo+1] )
@@ -842,6 +845,7 @@ void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEven
 		      sum_xy += xhit[w]*yhit[w];
 		    }
 		  }
+
 		  delta[lay] = npti* sum_x2 - sum_x * sum_x;
 		  a[lay] = (sum_x2 * sum_y - sum_x * sum_xy) / delta[lay];
 		  b[lay] = (npti * sum_xy - sum_x * sum_y) / delta[lay];
@@ -861,10 +865,10 @@ void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEven
       } // loop on segments
       
 
-
     } //close if(track->Get_IsGood(0)...)
   } // close if(Track_IsGood())
   
+
   if(hits->Get_NumberHITS()<1000){
     if(hits->Get_NumberHITS() != 0)
       h_Nhit->Fill(hits->Get_NumberHITS());
@@ -1060,7 +1064,7 @@ void Save_HistosAndTree::initHistos(){
   h_resSLdown=new TH1F("h_resSLdown","Residui SL2 (um)",1000,-2000.,2000.);
   
   if(calcola_spline)
-    for(int i=0; i<nmaxseg; i++)  
+    for(int i=0; i<nmaxseg; i++)
       for(int slo=0; slo<8; slo++)  
 	h_lincorr[i][slo]=new TH2F(Form("h_lincorr_seg%d_slope%d",i,slo),Form("dist track-wire (ns) VS res (ns), seg%d slope%d",i,slo),90,0,450,100,-50,50);
 
@@ -1147,7 +1151,7 @@ void Save_HistosAndTree::writeHistos(){
   h_resSLdown->Write();
 
   if(calcola_spline)
-    for(int i=0; i<nmaxseg; i++)  
+    for(int i=0; i<nmaxseg; i++)
       for(int slo=0; slo<8; slo++)  
 	h_lincorr[i][slo]->Write();  
   if(calcola_spline)
@@ -1223,7 +1227,7 @@ void Save_HistosAndTree::resetHistos()
   h_resSLdown->Reset();
 
   if(calcola_spline)
-    for(int i=0; i<nmaxseg; i++)  
+    for(int i=0; i<nmaxseg; i++)
       for(int slo=0; slo<8; slo++)  
 	h_lincorr[i][slo]->Reset();  
   if(calcola_spline)
@@ -1299,7 +1303,7 @@ void Save_HistosAndTree::deleteHistos()
   h_resSLdown->Delete();
 
   if(calcola_spline)
-    for(int i=0; i<nmaxseg; i++)  
+    for(int i=0; i<nmaxseg; i++)
       for(int slo=0; slo<8; slo++)  
 	h_lincorr[i][slo]->Delete();  
   if(calcola_spline)
@@ -1620,13 +1624,13 @@ void Save_HistosAndTree::write_Statistics(FILE *fo_txt){
   fprintf (fo_txt, "     CH2 %d:  NPT 8: %d,  NPT 7 %d,  NPT 6 %d\n",ev_CH2_fitgloOk_MP,ev_CH2_fitgloOk_MP_NPT8,ev_CH2_fitgloOk_MP_NPT7,ev_CH2_fitgloOk_MP_NPT6);
   fprintf (fo_txt, "---> MEAN and SIGMA of RESIDUALS (um) (FITGLO OK for CH1 and CH2, FIT OK for SL1 and SL2)\n");
   fprintf (fo_txt, "     CH1:  PHI:  X0 = %.1f  RMS = %.1f,  THETA:  X0 = %.1f  RMS = %.1f\n",
-	   h_resCH1Phi_glo->GetMean(),h_resCH1Phi_glo->GetRMS(),h_resCH1The_glo->GetMean(),h_resCH1The_glo->GetRMS());
+       h_resCH1Phi_glo->GetMean(),h_resCH1Phi_glo->GetRMS(),h_resCH1The_glo->GetMean(),h_resCH1The_glo->GetRMS());
   fprintf (fo_txt, "     CH2:  PHI:  X0 = %.1f  RMS = %.1f,  THETA:  X0 = %.1f  RMS = %.1f\n",
-	   h_resCH2Phi_glo->GetMean(),h_resCH2Phi_glo->GetRMS(),h_resCH2The_glo->GetMean(),h_resCH2The_glo->GetRMS());
+       h_resCH2Phi_glo->GetMean(),h_resCH2Phi_glo->GetRMS(),h_resCH2The_glo->GetMean(),h_resCH2The_glo->GetRMS());
   fprintf (fo_txt, "     SL1:        X0 = %.1f  RMS = %.1f\n",
-	   h_resSLup->GetMean(),h_resSLup->GetRMS());
+       h_resSLup->GetMean(),h_resSLup->GetRMS());
   fprintf (fo_txt, "     SL2:        X0 = %.1f  RMS = %.1f\n",
-	   h_resSLdown->GetMean(),h_resSLdown->GetRMS());
+       h_resSLdown->GetMean(),h_resSLdown->GetRMS());
   
   return;
   

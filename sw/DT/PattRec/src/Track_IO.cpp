@@ -80,7 +80,7 @@ FILE * Track_IO::openTXTFile(int runN, int maxEvent, int runID){
 //    sprintf(fileName,"/data/radmu/Patt_Rec/INFO/Statistics_r%d_%d_%dev.txt",runN,runID,maxEvent);
 //  else
 //  sprintf(fileName,"/data/tom_data/PattRec/INFO/Statistics_r%d_%d_%dev.txt",runN,runID,maxEvent);
-  sprintf(fileName,"./OUTPUT/Statistics_r%d_%d_%dev.txt",runN,runID,maxEvent);
+  sprintf(fileName,"./output/Statistics_r%d_%d_%dev.txt",runN,runID,maxEvent);
 
   txtfile = fopen(fileName,"w");
   printf("Opening file: %s\n",fileName);
@@ -92,13 +92,13 @@ FILE * Track_IO::openTXTFile(int runN, int maxEvent, int runID){
 
 TFile * Track_IO::openOUTRootFile(int runN, int maxEvent, int runID){
   
-  char fileNameT[100];
+  char fileNameT[200];
 
 //  if(lxradiomu)
 //    sprintf(fileNameT,"/data/radmu/Patt_Rec/Radmufit_r%d_%d_%dev_PR.root",runN,runID,maxEvent);
 //  else
 //      sprintf(fileNameT,"/data/tom_data/PattRec/RootFile/Radmufit_r%d_%d_%dev_PR.root",runN,runID,maxEvent);
-  sprintf(fileNameT,"./OUTPUT/Radmufit_r%d_%d_%dev_PR.root",runN,runID,maxEvent);
+  sprintf(fileNameT,"./output/Radmufit_r%d_%d_%dev_PR.root",runN,runID,maxEvent);
 
   
   cout<<"Opening file to store Tree: "<<fileNameT<<endl;
@@ -116,7 +116,7 @@ TFile * Track_IO::openOUTHistoFile(int runN, int maxEvent, int runID){
 //    sprintf(nome,"/data/radmu/Patt_Rec/INFO/prova_HIT_r%d_%d_%dev.root",runN,runID,maxEvent);
 //  else
 //      sprintf(nome,"/data/tom_data/PattRec/INFO/prova_HIT_r%d_%d_%dev.root",runN,runID,maxEvent);
-  sprintf(nome,"./OUTPUT/prova_HIT_r%d_%d_%dev.root",runN,runID,maxEvent);
+  sprintf(nome,"./output/prova_HIT_r%d_%d_%dev.root",runN,runID,maxEvent);
 
   cout<<"Opening file to store Histos: "<<nome<<endl;
   fo_histo = new TFile(nome,"RECREATE");

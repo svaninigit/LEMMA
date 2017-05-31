@@ -31,10 +31,10 @@ using std::string;
 #include "Geom.h"
 #include "Save_HistosAndTree.h"
 #include "Track_IO.h"
-#include "../Monitor/TTrigCalibration.h"
+#include "TTrigCalibration.h"
 
 // SV 100203-05 include TOMTOOL classes
-#include "../Monitor/RawHistos.h"
+#include "RawHistos.h"
 
 // SV 100210 include EM classes
 /* #include "../EM/ImgAnalyzer.h" */

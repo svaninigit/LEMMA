@@ -23,14 +23,10 @@
 
 //////////////////////////////////////////////////////////////////////////////*/
 
-
-
 #ifndef U_CORE_OPTIONS_H
 #define U_CORE_OPTIONS_H
 
 #include <boost/program_options.hpp>
-
-namespace uLib {
 
 namespace detail {
 
@@ -170,10 +166,5 @@ public:
     bool count(const char *str) const;
 
 };
-
-
-} // uLib
-
-
 
 #endif // U_CORE_OPTIONS_H

@@ -1,6 +1,5 @@
 #include "HITCollection.h"
 
-
 HITCollection::~HITCollection()
 {
   int N=Get_NumberHITS();
@@ -95,7 +94,6 @@ void HITCollection::Clean2FE()
 int HITCollection::Get_NumberHITS()
 {
   int _H = _hits.size();
-  
   return _H;
 }
 
