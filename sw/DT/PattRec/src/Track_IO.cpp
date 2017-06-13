@@ -25,40 +25,31 @@ Track_IO::~Track_IO(){
 }
 
 
-FILE * Track_IO::openINFile(char *fin, int runID, int ID){
+FILE * Track_IO::openINFile(TString fin, int ID){
   
-  const char *fileName;
-  TString fname(fin);
-  TString fname_fin="";
-  if(runID==-1){
-    char * pch;
-    pch=strrchr(fin,'.');
-    //printf ("Last occurence of '.' found at %d \n",pch-fin+1);
-    if(pch==NULL){
-      printf("You have to pass file with the right extension (***.i*)!!!\n");
-      return NULL;
-    }
-    int num=pch-fin+2;
-    fname.Remove(num,3);
-    fname += ID;
-    fileName=fname.Data();
+//  const char *fileName;
+//  TString fname(fin);
+//  TString fname_fin="";
 
-    cout<<fileName<<endl;
-  }
-  else {
-    TString path;
-    
-    path = "/"; ///mudata/LNL/muonegrafia/"; //path over network
-    fname_fin += path;
-    fname_fin += fname;
-    fname_fin += ".i";
-    fname_fin += ID;
-    
-    fileName=fname_fin.Data();
-    
-    cout<<fileName<<endl;
-  }
-  
+//    TString path;
+
+//    path = "/"; ///mudata/LNL/muonegrafia/"; //path over network
+//    fname_fin += path;
+//    fname_fin += fname;
+//    fname_fin += ".i";
+//    fname_fin += ID;
+
+//    fileName=fname_fin.Data();
+
+//    cout<<fileName<<endl;
+
+
+  fin += ".i";
+  fin += ID;
+
+  const char *fileName;
+  fileName=fin.Data();
+
   infile = fopen(fileName,"rb");
   printf("Opening file: %s\n",fileName);
   if(infile==NULL){
@@ -72,7 +63,7 @@ FILE * Track_IO::openINFile(char *fin, int runID, int ID){
 
 
 
-FILE * Track_IO::openTXTFile(int runN, int maxEvent, int runID){
+FILE * Track_IO::openTXTFile(int runN, int maxEvent){
 
   char fileName[300];
 
@@ -80,7 +71,7 @@ FILE * Track_IO::openTXTFile(int runN, int maxEvent, int runID){
 //    sprintf(fileName,"/data/radmu/Patt_Rec/INFO/Statistics_r%d_%d_%dev.txt",runN,runID,maxEvent);
 //  else
 //  sprintf(fileName,"/data/tom_data/PattRec/INFO/Statistics_r%d_%d_%dev.txt",runN,runID,maxEvent);
-  sprintf(fileName,"./output/Statistics_r%d_%d_%dev.txt",runN,runID,maxEvent);
+  sprintf(fileName,"./output/Statistics_r%d_%dev.txt",runN,maxEvent);
 
   txtfile = fopen(fileName,"w");
   printf("Opening file: %s\n",fileName);
@@ -90,15 +81,14 @@ FILE * Track_IO::openTXTFile(int runN, int maxEvent, int runID){
   return txtfile;
 }
 
-TFile * Track_IO::openOUTRootFile(int runN, int maxEvent, int runID){
-  
+TFile * Track_IO::openOUTRootFile(int runN, int maxEvent){
   char fileNameT[200];
 
 //  if(lxradiomu)
 //    sprintf(fileNameT,"/data/radmu/Patt_Rec/Radmufit_r%d_%d_%dev_PR.root",runN,runID,maxEvent);
 //  else
 //      sprintf(fileNameT,"/data/tom_data/PattRec/RootFile/Radmufit_r%d_%d_%dev_PR.root",runN,runID,maxEvent);
-  sprintf(fileNameT,"./output/Radmufit_r%d_%d_%dev_PR.root",runN,runID,maxEvent);
+  sprintf(fileNameT,"./output/Radmufit_r%d_%dev_PR.root",runN,maxEvent);
 
   
   cout<<"Opening file to store Tree: "<<fileNameT<<endl;
@@ -108,7 +98,7 @@ TFile * Track_IO::openOUTRootFile(int runN, int maxEvent, int runID){
   return fo_tree; 
 }
 
-TFile * Track_IO::openOUTHistoFile(int runN, int maxEvent, int runID){
+TFile * Track_IO::openOUTHistoFile(int runN, int maxEvent){
   
   char nome[100];
 
@@ -116,7 +106,7 @@ TFile * Track_IO::openOUTHistoFile(int runN, int maxEvent, int runID){
 //    sprintf(nome,"/data/radmu/Patt_Rec/INFO/prova_HIT_r%d_%d_%dev.root",runN,runID,maxEvent);
 //  else
 //      sprintf(nome,"/data/tom_data/PattRec/INFO/prova_HIT_r%d_%d_%dev.root",runN,runID,maxEvent);
-  sprintf(nome,"./output/prova_HIT_r%d_%d_%dev.root",runN,runID,maxEvent);
+  sprintf(nome,"./output/prova_HIT_r%d_%dev.root",runN,maxEvent);
 
   cout<<"Opening file to store Histos: "<<nome<<endl;
   fo_histo = new TFile(nome,"RECREATE");
@@ -124,7 +114,7 @@ TFile * Track_IO::openOUTHistoFile(int runN, int maxEvent, int runID){
   return fo_histo; 
 }
 
-ofstream * Track_IO::openOUTHBFile(int runN, int maxEvent, int runID){
+ofstream * Track_IO::openOUTHBFile(int runN, int maxEvent){
   
   char nome[100];
 
@@ -132,7 +122,7 @@ ofstream * Track_IO::openOUTHBFile(int runN, int maxEvent, int runID){
 //    sprintf(nome,"/data_03/HitBank_files/HitBank_r%d_%d_%dev.dat",runN,runID,maxEvent);
 //  else
 //      sprintf(nome,"/data/tom_data/PattRec/HitBank/HitBank_r%d_%d_%dev.dat",runN,runID,maxEvent);
-  sprintf(nome,"./HitBank/HitBank_r%d_%d_%dev.dat",runN,runID,maxEvent);
+  sprintf(nome,"./HitBank/HitBank_r%d_%dev.dat",runN,maxEvent);
 
   cout<<"Opening file to store HitBank: "<<nome<<endl;
   HBfile = new ofstream();

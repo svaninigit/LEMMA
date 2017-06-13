@@ -36,11 +36,11 @@ class Track_IO {
   // operations
 	// raw file
   //  void readRawFile(char* rawFileName);
-  FILE * openINFile(char *fin, int runID, int ID);
-  FILE * openTXTFile(int runN, int maxEvent, int runID);
-  ofstream * openOUTHBFile(int runN, int maxEvent, int runID);
-  TFile * openOUTRootFile(int runN, int maxEvent, int runID);
-  TFile * openOUTHistoFile(int runN, int maxEvent, int runID);
+  FILE * openINFile(TString fin, int ID);
+  FILE * openTXTFile(int runN, int maxEvent);
+  ofstream * openOUTHBFile(int runN, int maxEvent);
+  TFile * openOUTRootFile(int runN, int maxEvent);
+  TFile * openOUTHistoFile(int runN, int maxEvent);
 
   private:
   FILE *infile;

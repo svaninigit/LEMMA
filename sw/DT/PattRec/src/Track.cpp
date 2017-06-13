@@ -1,6 +1,10 @@
 #include "Track.h"
 
 Track::Track() { 
+
+  if(DEBUG_TRACK)
+      cout << "Track constructor" << endl;
+
   for(int i=0;i<6;i++) {
     seg[i]=NULL;
     hit_seg[i]=NULL;
@@ -31,6 +35,9 @@ HITColl_Seg * Track::SelectSeg(HITCollection *hits, int i, int CH, bool phi){
 
 void Track::SelectTrack(HITCollection *hits, TimeCorr *corr)
 {
+  if(DEBUG_TRACK)
+        cout << "Track::SelectTrack" << endl;
+
   isGood=false;
   
   if(DEBUG_TRACK && hits->Get_NumberHITS()>0)

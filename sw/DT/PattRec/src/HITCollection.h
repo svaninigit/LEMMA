@@ -33,6 +33,7 @@ class HITCollection : public TObject {
   void addHIT(HIT * hit);
   void eraseHIT(int i);
   void printHIT(int i);
+  void dumpHITCollection();
   HIT * hit(int i);
 
   // patch per pulire doppia lettura front end

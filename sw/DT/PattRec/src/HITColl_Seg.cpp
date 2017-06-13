@@ -25,29 +25,28 @@ void HITColl_Seg::selectHIT(HITCollection * hits, int CH, bool phi)
   for(int i=0;i<hits->Get_NumberHITS();i++){
     HIT *hit=hits->hit(i);
     
-    int SL1=0; int SL2=0;
+    int SL1=0;
+    int SL2=0;
     if(CH==10||CH==11)
-      if(phi==false){
-	SL1=2; 
-	SL2=0;
-      }
-      else 
-	if(phi==true){
-	  SL1=1;
-	  SL2=3;
-	}
-    if(CH==9){
-      SL1=3;
-      SL2=0;
-    }
-    if(CH==8){
-      SL1=1;
-      SL2=0;
-    }
+        if(phi==false){
+            SL1=2;
+            SL2=0;
+        } else if(phi==true){
+            SL1=1;
+            SL2=3;
+        }
+        if(CH==9){
+            SL1=3;
+            SL2=0;
+        }
+        if(CH==8){
+            SL1=1;
+            SL2=0;
+        }
     
-// 20170405 if hit is in the layer with HV modified, to be excluded from fit
-    if( hit->CH_ID()==CH_HVmod && hit->SL_ID()==SL_HVmod && hit->L_ID()==LAY_HVmod)
-       continue;
+//// 20170405 if hit is in the layer with HV modified, to be excluded from fit
+//    if( hit->CH_ID()==CH_HVmod && hit->SL_ID()==SL_HVmod && hit->L_ID()==LAY_HVmod)
+//       continue;
 
     if( hit->CH_ID()==CH && (hit->SL_ID()==SL1 || hit->SL_ID()==SL2) )
       if( hit->dtime_in()>-10. && hit->dtime_in()<410.5 )

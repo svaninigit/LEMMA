@@ -14,8 +14,6 @@ static const int nrob =  19;
 static const int ntdc =   4;
 static const int ncha =  32;
 
-static const int runID_max = 50; // delta run ID
-
 RawAnalyzer::RawAnalyzer() {
   
   // init useful variables
@@ -104,10 +102,10 @@ RawAnalyzer::~RawAnalyzer() {
   
 }
 
-void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int runTrig, bool ttrig) {
-  
+void RawAnalyzer::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bool ttrig) {
+
   if(CREATE_TREE){
-    fo_Tree=inout->openOUTRootFile(runN,maxEvent,runID);
+    fo_Tree=inout->openOUTRootFile(runN,maxEvent);
     dump->initTree();
     tree = new TTree("RADMU","radmu analysis");
     dump->bookTree(tree);
@@ -116,13 +114,13 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
   if(CREATE_HITBANK){
     HBFile=new ofstream();
     HBFile=NULL; 
-    HBFile=inout->openOUTHBFile(runN,maxEvent,runID);
+    HBFile=inout->openOUTHBFile(runN,maxEvent);
     
     dump->initHB(runN,numEvent,HBFile);
   }
   
   if(DUMP_HISTOS){
-    fo_Histo=inout->openOUTHistoFile(runN,maxEvent,runID);
+    fo_Histo=inout->openOUTHistoFile(runN,maxEvent);
   }
   
   if(DUMP_STAT){
@@ -173,11 +171,11 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
     maxwords = 10000;
   int words_read=0;
   
-  for(int ID=runID; ID<(runID+runID_max); ID++){
+  for(int ID=0; ID<50; ID++){
     
     if(numEvent<=maxEvent) 
       {
-	rawfile=inout->openINFile(fin,runID,ID);
+    rawfile=inout->openINFile(fin,ID);
 	
 	if(rawfile==NULL)
 	  continue;
@@ -339,7 +337,7 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
 	    //if(_imgAnalyzer && _imgAnalyzer->flagBuildImg()) ...
 	    
 	    if(DUMP_STAT){
-	      fo_txt=inout->openTXTFile(runN,maxEvent,runID);
+          fo_txt=inout->openTXTFile(runN,maxEvent);
 	      if(fo_txt!=NULL)
 		{
 		  dump->write_Statistics(fo_txt);
@@ -359,7 +357,7 @@ void RawAnalyzer::goAnalysis(char *fin, int maxEvent, int runN, int runID, int r
   } // close if(ID=0;ID<runID_max;ID++)
   
   if(DUMP_STAT){
-    fo_txt=inout->openTXTFile(runN,maxEvent,runID);
+    fo_txt=inout->openTXTFile(runN,maxEvent);
     
     if(fo_txt!=NULL){
       dump->write_Statistics(fo_txt);

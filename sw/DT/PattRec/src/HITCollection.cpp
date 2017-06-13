@@ -105,3 +105,13 @@ void HITCollection::printHIT(int i)
   
   return;
 }
+
+void HITCollection::dumpHITCollection()
+{
+    cout << "*** HITCollection dump ***" << endl;
+    for(int ih=0; ih<_hits.size(); ih++){
+        HIT * h = hit(ih);
+        h->print();
+    }
+    return;
+}

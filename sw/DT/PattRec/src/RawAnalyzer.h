@@ -59,8 +59,8 @@ class RawAnalyzer {
   */
 
   // member functions
-  void goAnalysis(char *fin, int maxEvent=100, int runN=0, int runID=-1, int runTrig=0);
-  void goAnalysis(char *fin, int maxEvent=100, int runN=0, int runID=-1, int runTrig=0, bool ttrig=0);
+  void goAnalysis(TString fin, int maxEvent=100, int runN=0, int runTrig=0);
+  void goAnalysis(TString fin, int maxEvent=100, int runN=0, int runTrig=0, bool ttrig=0);
   void readWord(bool &break_flag, FILE *infile);
   void collectHit();
   void fillMap();
