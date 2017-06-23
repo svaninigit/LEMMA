@@ -1,0 +1,47 @@
+
+Laura Bandiera <laura.bandiera451@gmail.com>
+
+   in allegato trovate un esempio di file ascii dei dati di H4 per AXIAL.
+Ogni riga mi da l'info sui 6 valori di posizione nei tre silici, 6 numero di
+strip attivate per cluster, 6 numero di cluster (nell'esempio solo eventi a
+singolo cluster), 64+6 canali dei calorimetri, 2 valori per i goniometri, 1
+valore per il movimentatore lineare, 1 spill number, 1 steps del goniometro,
+numero evento.
+
+alcune domande e le relative risposte
+
+uso come esempio la prima riga del file
+      6 valori di posizione nei tre silici:
+      0.96558E+00  0.86225E+00  0.10617E+01  0.55000E+00  0.11850E+01 0.10850E+01 
+queste sono coppie di coordinate x,y ?
+
+SI
+
+espresse in un sistema di riferimento comune ai tre silici ?
+
+NO, i silici vanno durante l'analisi. (non ho capito la spiegazione)
+
+per ottenere questi numeri avete gia' girato una mini-ricostruzione a
+monte ?
+
+Lo fa direttamente Michela prest, partendo dai raw. Di solito seleziona solo i
+singoli cluster, ma può anche fare anche diversamente (per esempio quest'anno
+avremo bisogno dei singoli cluster nei primi due silici, ma multi-cluster nel
+terzo per gli studi di axial)
+
+assumete di avere una particella carica che transita per "evento" ?
+
+nei dati che ti ho dato credo proprio di sì perchè sono quelli a single track.
+
+6 numero di strip attivate per cluster:
+02 03 02 01 01 01
+
+6 numero di cluster:
+01 01 01 01 01 01
+quindi avete un cluster per silicio e per vista
+riuscite anche ad analizzare eventi con piu' di un cluster per vista ?
+
+Sì, infatti a dicembre mi ha ricostruito i multi cluster per il silicio dopo la
+targhetta. Mi interessavano infatti i secondari prodotti all'interno della
+targhetta.
+
