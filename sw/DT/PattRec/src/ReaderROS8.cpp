@@ -579,7 +579,7 @@ void ReaderROS8::readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCo
                 tdcID = tdcID >> 24;
                 chID = tdcData & 0x00F80000;
                 chID = chID >> 19;
-                rawtime = tdcData & 0x00007FFF;
+                rawtime = tdcData & 0x0007FFFF;
                 if(m_debug)
                     cout << "  ---> TDC data, TDC ID " << dec << tdcID << ", channel ID " << chID << ", time " << rawtime << endl;
 
