@@ -33,11 +33,12 @@ private:
     TTree * m_outTree;
     Int_t     iev;
     Int_t     nhits;
-    Int_t               subdet[100];
+    Int_t           subdet[100];
     Double_t        xh[100];
     Double_t        yh[100];
     Double_t        zh[100];
-
+    Int_t           itrack[100];
+    
     /// dt data file
     TFile * m_dtFile;
     TTree * m_tree;
