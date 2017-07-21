@@ -44,6 +44,7 @@ void EventBuilder::openDataFiles(std::string inputDTFile, std::string inputSiFil
     m_outTree->Branch("xh", &xh, "xh[100]/F");
     m_outTree->Branch("yh", &yh, "yh[100]/F");
     m_outTree->Branch("zh", &zh, "zh[100]/F");
+    m_outTree->Branch("itrack", &itrack, "itrack[100]/F");
 
     return;
 }
@@ -150,6 +151,7 @@ void EventBuilder::dumpGlobalEvent(){
         zh[i] = 25.60;
     }
 
+    /// SV FIX fill itrack, track ID 
 
     /// fill Si data -----> TO BE COMPLETED !!!
 
