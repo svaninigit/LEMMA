@@ -2,8 +2,8 @@
 
 // output flags
 static const bool DUMP_HISTOS = 1;   // fill root histograms
-static const bool CREATE_TREE = 1; // fill root file RADMU
-static const bool DUMP_STAT = 1;   // save statistics on a txt file
+static const bool CREATE_TREE = 1;   // fill root file RADMU
+static const bool DUMP_STAT   = 1;   // save statistics on a txt file
 
 static const double ConvToNs = 25./32.;
 
@@ -23,14 +23,17 @@ ReaderROS8::ReaderROS8() {
   fo_Histo=NULL;
 
   inout=new Track_IO();
-  dump=new Save_HistosAndTree();
   geo=new Geom();        // Geo and reference system
   corr= new TimeCorr();  // Time Correction
   corr->InitSpline();    // Load spline for linear correction
 
   // init TOMTOOL
   _rawHistos = NULL;
-  _ttrigCalib=NULL;
+  _ttrigCalib = NULL;
+
+  //ALTEA
+  _occupancy = NULL;
+  //fout.open("rawtime.txt");
 
   return;
 }
@@ -61,6 +64,7 @@ ReaderROS8::~ReaderROS8() {
   }
 
   //   fclose(rawfile);
+  //fout.close();
 
   delete dump;
   dump=NULL;
@@ -70,14 +74,19 @@ ReaderROS8::~ReaderROS8() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bool ttrig) {
+
+void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bool ttrig, bool n2chambers) {
 
     /// --------- dumps initialization
+    dump=new Save_HistosAndTree();
+    if(!n2chambers)
+        dump->set1chamber();
+
     if(CREATE_TREE){
         fo_Tree=inout->openOUTRootFile(runN,maxEvent);
         dump->initTree();
         tree = new TTree("RADMU","radmu analysis");
-        dump->bookTree(tree);
+        dump->bookTree(tree,n2chambers);
     }
 
     if(DUMP_HISTOS){
@@ -90,8 +99,8 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
 
     /// --------- maps initialization
     fillMap();                        //fill channel map
-    fillMap_t0();                  //fill t0 map
-    fillMap_ttrig(runTrig);   //fill ttrig map
+    fillMap_t0();                     //fill t0 map
+    fillMap_ttrig(runTrig);           //fill ttrig map
 
     if(DEBUG_RA_MAP)
         checkMap();
@@ -102,17 +111,26 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
     if(DUMP_HISTOS)
         dump->initHistos();
 
+    /// --------- ttrig calibration 
     if(ttrig==1)
     {
         if(!_ttrigCalib)
         _ttrigCalib = new TTrigCalibration();
-        _ttrigCalib->setFlagFillHistos(true);
+        _ttrigCalib->setFlagFillHistos(true);	
         setTTrigCalibPtr(_ttrigCalib);
+
+	//ALTEA
+	_occupancy = new Occupancy();
 
         // SV 20170613 FIX not sure this is needed....
         TCanvas * fC1 = new TCanvas("ReadbackDisplayProgram", "Tomography Display", 5, 5, 800, 900);
-        _ttrigCalib->buildCanvasTSL(fC1);
-        _ttrigCalib->setCanvas(1);
+	_ttrigCalib->buildCanvasTSL(fC1);
+        _ttrigCalib->setCanvas(1); //ALTEA IMPORTANTE! 
+				   //in TTrigCalibration::setCanvas(int flag) viene inizializzata a 1 la variabile _nCanvas
+				   //che poi viene restituita dalla funzione TTrigCalibration::getCanvas()
+				   //con cui viene inizializzata la flag di TTrigCalibration::computeTTrig(int flag)
+				   //per cui alla fine vengono calcolati i ttrig dei SL e non quelli delle rob.
+				   
     }
 
     /// --------- read raw file
@@ -120,7 +138,7 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
     FILE * rawfile = fopen(fileName,"rb");
     printf("Opening file: %s\n",fileName);
     m_integrity = 1;
-    int numEvent=0;
+    int numEvent = 0;
 
     if(rawfile==NULL)
         printf("ERROR file %s doesn't exist ! \n",fileName);
@@ -133,26 +151,31 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
             HITCollection * hits = new HITCollection();
 
             // unpack event
-            readEvent(rawfile,hits);
+            int daqEvNum = readEvent(rawfile,hits);
 
              // track reconstruction
             Track *track = new Track();
-            track->SelectTrack(hits,corr);
+            bool n2chambers=0;
+            track->SelectTrack(hits,corr,n2chambers);
             if(track->Track_IsGood()){
+
                 if(DUMP_HISTOS)
-                    dump->dumpHisto(track,hits,numEvent);
+                    dump->dumpHisto(track,hits,daqEvNum);
                 if(CREATE_TREE)
-                    dump->dumpTree(track,hits,numEvent,tree);
+                    dump->dumpTree(track,hits,daqEvNum,tree);
                 if(DUMP_STAT)
-                    dump->compute_Statistics(track,hits,numEvent);
+                    dump->compute_Statistics(track,hits,daqEvNum);
+
             }
 
             // debug hits
             //hits->dumpHITCollection();
 
-            // fill ttrig calibration histos
-            if(_ttrigCalib && _ttrigCalib->flagFillHistos() && hits)
-              _ttrigCalib->fillHistos(hits);
+            // fill ttrig calibration histos + occupancy(ALTEA)
+            if(_ttrigCalib && _ttrigCalib->flagFillHistos() && hits) {
+            	_ttrigCalib->fillHistos(hits);
+	    	_occupancy->fillOccHistos(hits);
+	    }
 
             // delete collections
             delete hits;
@@ -180,56 +203,48 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
         char  ttrigName[100];
         sprintf(ttrigName,"./ttrig/ttrig_%d.txt",runN);
         _ttrigCalib->dumpTTrigs(ttrigName);
-    }
+        //ALTEA
+    	_occupancy->saveOccHistos();
 
+    }
     cout << "END file unpacking, " << numEvent << " events read" << endl;
     return;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ReaderROS8::fillMap(){
 
-  ofstream myfile;
-  myfile.open ("out.txt");
-  if(m_debug)
-    myfile << "reading map" << endl;
-
-  ifstream file("utils/legnaro2ROS25.txt");//"legnaro2ROS25-prototipoFRANCO.txt");
+  ifstream file("utils/mappaMB2.txt");//"legnaro2ROS25-prototipoFRANCO.txt");
   if(!file.is_open()){
     cout << "ERROR : no channel map file found - exiting ! " << endl;
     exit(1);
   }
 
-  int ros;
+  //ALTEA per la nuova mappa devo cambiare queste variabili
+  int ros=1;
   int rob;
   int tdc;
   int cha;
 
-  int se;
+  int se=11;
   int sl;
   int lay;
   int tube;
 
-  int ddu;
-  int wh;
-  int st;
+  //int ddu;
+  //int wh;
+  //int st;
 
-  if(m_debug)
-    cout << "map loop ... " << endl;
-  while( file >> ddu >> ros >> rob >> tdc >> cha >> wh >> st >> se >> sl >> lay >> tube )
+  while( /*ALTEA OLD MAP file >> ddu >> ros >> rob >> tdc >> cha >> wh >> st >> se >> sl >> lay >> tube*/
+       file >> rob >> tdc >> cha >> sl >> lay >> tube )
     {
-      if(m_debug) myfile << "fillMap "
-                << ddu << " " << ros << " " << rob << " " << tdc << " " << cha  << " => "
-                << wh << " " << st << " " << se << " " << " " <<  sl << " " << lay << " " << tube << endl;
-
       int idTDC = getTDCid(ros,rob,tdc,cha);
       int idTube = getTubeId(se,sl,lay,tube);
 
       chmap.insert( std::make_pair( idTDC, idTube ) );
 
     }
-  if(m_debug)
-    myfile << "TDC map read" << endl;
   return;
 }
 
@@ -240,67 +255,65 @@ void ReaderROS8::checkMap(){
   if(m_debug)
     myfile << "checking map" << endl;
 
-  ifstream file("legnaro2ROS25.txt");//"legnaro2ROS25-prototipoFRANCO.txt");
+  ifstream file("utils/mappaMB2.txt");//"legnaro2ROS25.txt");
   if(!file.is_open()){
     cout << "ERROR : no channel map file found - exiting ! " << endl;
     exit(1);
   }
 
-  int ros;
+  int ros=1;
   int rob;
   int tdc;
   int cha;
 
-  int se;
+  int se=11;
   int sl;
   int lay;
   int tube;
 
-  int ddu;
-  int wh;
-  int st;
+  //int ddu;
+  //int wh;
+  //int st;
 
   map<int,int>::iterator iter;
 
   if(m_debug)
     cout << "map loop ... " << endl;
-  while( file >> ddu >> ros >> rob >> tdc >> cha >> wh >> st >> se >> sl >> lay >> tube )
+  while( /*ALTEA OLD MAP file >> ddu >> ros >> rob >> tdc >> cha >> wh >> st >> se >> sl >> lay >> tube*/
+	 file >> rob >> tdc >> cha >> sl >> lay >> tube  )
     {
       int rawdata = getTDCid(1,rob,tdc,cha);
       //cout << "TDCid " << rawdata << endl;
 
       iter = chmap.find(rawdata);
       if( iter != chmap.end() )
-    {
-      if(m_debug)
-        {
-          cout << "SE " << getSe(iter->second) <<
-        " sl " << getSL(iter->second) <<
-        " lay " << getLay(iter->second) <<
-        " tube " << getTube(iter->second) << endl;
-        }
+      {
+          if(m_debug)
+          {
+          	cout << "SE " << getSe(iter->second) <<
+                " sl " << getSL(iter->second) <<
+                " lay " << getLay(iter->second) <<
+                " tube " << getTube(iter->second) << endl;
+          }
 
-      if(m_debug)
-        myfile << "fillMap " << ddu << " " << ros << " " << rob << " " <<
-          tdc << " " << cha  << " => " << wh << " " << st << " " <<
-          getSe(iter->second) << " " << " " <<  getSL(iter->second) << " " <<
-          getLay(iter->second) << " " << getTube(iter->second) << endl;
+          if(m_debug)
+	  {
+        	myfile << "fillMap " /*ALTEA OLD MAP << ddu << " "*/ << ros << " " << rob << " " <<
+          	tdc << " " << cha  << " => " /*<< wh << " " << st << " "*/ <<
+          	getSe(iter->second) << " " << " " <<  getSL(iter->second) << " " <<
+          	getLay(iter->second) << " " << getTube(iter->second) << endl;
+	  }
+       }
+    }
 
-    }
-    }
   if(m_debug)
     myfile << "end map check" << endl;
+  
   return;
 }
 
 void ReaderROS8::fillMap_t0()
 {
-
-  ofstream myfile;
-  myfile.open ("out2.txt");
-  if(m_debug)
-    myfile << "reading t0" << endl;
-
   ifstream file("utils/t0.txt");
   if(!file.is_open()){
     cout << "WARNING : no t0 file found... " << endl;
@@ -316,18 +329,11 @@ void ReaderROS8::fillMap_t0()
 
   if(m_debug)
     cout << "map_t0 loop ... " << endl;
-  while( file >> se >> sl >> lay >> tube >> t0 >> s_t0)
+  while( file >> se >> sl >> lay >> tube >> t0 >> s_t0 )
     {
-      if(m_debug) myfile << "fillMap t0 "
-                << se << " " << " " <<  sl << " " << lay << " " << tube << " " << t0 << endl;
-
       int idTube = getTubeId(se,sl,lay,tube);
-
       t0map.insert( std::make_pair( idTube , t0) );
-
     }
-  if(m_debug)
-    myfile << "t0 map read" << endl;
   return;
 }
 
@@ -384,12 +390,6 @@ void ReaderROS8::checkMap_t0()
 
 void ReaderROS8::fillMap_ttrig(int runTrig)
 {
-
-  ofstream myfile;
-  myfile.open ("out3.txt");
-  if(m_debug)
-    myfile << "reading ttrig" << endl;
-
   char fn[100];
   sprintf(fn,"./ttrig/ttrig_%d.txt",runTrig);
   ifstream file(fn);
@@ -407,16 +407,13 @@ void ReaderROS8::fillMap_ttrig(int runTrig)
     cout << "map_ttrig loop ... " << endl;
   while( file >> se >> sl >> ttrig >> s_ttrig)
     {
-      if(m_debug) myfile << "fillMap ttrig "
-                << se << " " << " " <<  sl << " " << ttrig << endl;
 
       int idSL = getSLId(se,sl);
 
       ttrigmap.insert( std::make_pair( idSL , ttrig) );
 
     }
-  if(m_debug)
-    myfile << "ttrig map read" << endl;
+
   return;
 }
 
@@ -470,7 +467,8 @@ void ReaderROS8::checkMap_ttrig(int runTrig)
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ReaderROS8::readEvent(FILE *infile, HITCollection * hits){
+
+int ReaderROS8::readEvent(FILE *infile, HITCollection * hits){
 
     // total word counter
     int wordCount = 0;
@@ -481,8 +479,6 @@ void ReaderROS8::readEvent(FILE *infile, HITCollection * hits){
         cout << "EVENT HEADER, word count " << eventWordCountHeader << endl;
 
     /// event header: word from 0 to 7
-    if(m_debug)
-        cout << "Reading event header " << endl;
 
     int runNum =  readWord(infile,wordCount);
     int spillNum =  readWord(infile,wordCount);
@@ -493,8 +489,13 @@ void ReaderROS8::readEvent(FILE *infile, HITCollection * hits){
     int res2 =  readWord(infile,wordCount);
     int res3 =  readWord(infile,wordCount);
 
+    if(m_debug){
+        cout << "Reading event header " << endl;
+        cout << "Run " << runNum << endl;
+    }
+
     /// ROS board data
-    readROS(infile,wordCount,rosOffset,hits);
+    int daqEvNum = readROS(infile,wordCount,rosOffset,hits);
 
     /// PU data
     readPU(infile,wordCount,puOffset);
@@ -508,11 +509,13 @@ void ReaderROS8::readEvent(FILE *infile, HITCollection * hits){
     if(eventWordCountHeader != eventWordCountTrailer)
         cout << "ERROR in data unpacking : event header word counter != event trailer word counter" << endl;
 
-    return;
+    return daqEvNum;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ReaderROS8::readROS(FILE * infile, int & wordCount, int & rosOffset, HITCollection * hits){
+
+int ReaderROS8::readROS(FILE * infile, int & wordCount, int & rosOffset, HITCollection * hits){
+       
     if(m_debug)
         cout << "START ROS board data unpacking!" << endl;
 
@@ -524,6 +527,8 @@ void ReaderROS8::readROS(FILE * infile, int & wordCount, int & rosOffset, HITCol
     if(m_debug)
         cout << "ROS board data, word count " << rosWordCount << ", lock status " << hex <<  rosWordLock << endl;
     int finalROSWordCount = wordCount+rosWordCount-2;
+
+    int daqEvNum = -1;
 
     while(wordCount < finalROSWordCount){
 
@@ -540,7 +545,7 @@ void ReaderROS8::readROS(FILE * infile, int & wordCount, int & rosOffset, HITCol
 
         /// read TDC
         if(rosChID != 3 && rosChID != 7)
-            readTDCGroup(infile,wordCount,rosChID,hits);
+            daqEvNum = readTDCGroup(infile,wordCount,rosChID,hits);
     }
 
     if(finalROSWordCount != wordCount)
@@ -548,22 +553,24 @@ void ReaderROS8::readROS(FILE * infile, int & wordCount, int & rosOffset, HITCol
 
     if(m_debug)
         cout << "END ROS board data unpacking!" << endl;
-    return;
+    return daqEvNum;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ReaderROS8::readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCollection * hits){
+
+int ReaderROS8::readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCollection * hits) {
 
         /// read TDC group type
         long tdcData =  readWord(infile,wordCount);
         long typeTDC = tdcData & 0xF0000000;
         typeTDC = typeTDC >> 28;
 
+         int evID = -1;
         /// group header
         if(typeTDC==0x0) {
             int tdcID = tdcData & 0x0F000000;
             tdcID = tdcID >> 24;
-            int evID = tdcData & 0x00FFF000;
+            evID = tdcData & 0x00FFF000;
             evID = evID >> 12;
             if(m_debug)
                 cout << "  ---> TDC group header" << ", TDC ID " << dec <<tdcID << ", event ID " << dec << evID << endl;
@@ -590,7 +597,7 @@ void ReaderROS8::readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCo
                 /// collect hit
                 int rawdata = getTDCid(1,rosChID,tdcID,chID);
                 map<int,int>::iterator iter = chmap.find(rawdata);
-                // SV 100203 add severe failure in case non channel is found in map
+                // SV 100203 add severe failure in case no channel is found in map
                 if(iter==chmap.end()) {
                     cout << "ERROR : no channel is found in map - exit ! " << endl;
                     cout <<	"Event_Id " << evID << " tdc " << tdcID << " rob " << rosChID << " ch " << chID << endl;
@@ -620,26 +627,29 @@ void ReaderROS8::readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCo
                     // create HIT and add HIT to HITCollection
                     if(getSe(iter->second) !=1 ) {
                         hits->createHIT(evID,getSe(iter->second),getSL(iter->second),getLay(iter->second),getTube(iter->second),x_wire,y_wire,tdcID,rosChID,chID,convToNs*(float(rawtime/4.)),t0,ttrig);
-
-//                        if(m_debug) {
-//                            cout<<"\n HIT created !"<<endl;
-//                            cout << "SE " << getSe(iter->second) <<
-//                          " sl " << getSL(iter->second) <<
-//                          " lay " << getLay(iter->second) <<
-//                          " tube " << getTube(iter->second) <<
-//                          " x_tube " << x_wire <<
-//                          " y_tube " << y_wire <<
-//                          " TDC_Id " << tdcID <<
-//                          " ROB_Id " << rosChID <<
-//                          " channel " << chID <<
-//                          " time (ns) " << convToNs*(float(rawtime)/4.) <<
-//                          " t0 (ns) " << convToNs*(iter_t0->second) <<
-//                          " ttrig (ns) " << iter_ttrig->second <<
-//                          " drift_time (ns) " << T_shift + convToNs*(float(rawtime)/4.) - t0 - ttrig << endl;
-//                        }
+		        
+                        //ALTEA
+                        //fout << "ev number:      " << numEvent << "		rawtime:      " << convToNs*(float(rawtime)/4.) << endl;
+			
+                        if(m_debug) {
+                          cout<<"\n HIT created !"<<endl;
+                          cout << "SE " << getSe(iter->second) <<
+                          " sl " << getSL(iter->second) <<
+                          " lay " << getLay(iter->second) <<
+                          " tube " << getTube(iter->second) <<
+                          " x_tube " << x_wire <<
+                          " y_tube " << y_wire <<
+                          " ROB_Id " << rosChID <<
+                          " TDC_Id " << tdcID <<
+                          " channel " << chID <<
+                          " time (ns) " << convToNs*(float(rawtime)/4.) <<
+                          " t0 (ns) " << convToNs*(iter_t0->second) <<
+                          " ttrig (ns) " << iter_ttrig->second <<
+                          " drift_time (ns) " << T_shift + convToNs*(float(rawtime)/4.) - t0 - ttrig << endl;
+                        }
                     }
-                }
-            } // close if( iter != chmap.end() )
+                } // close if( iter != chmap.end() )
+            } // close while
 
             /// now trailer comes...
             if(typeTDC==0x1){
@@ -650,17 +660,19 @@ void ReaderROS8::readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCo
                 if(m_debug)
                         cout << "  ---> TDC group trailer" << ", TDC ID " << dec <<tdcID << ", event ID " << dec << evID << endl;
             }
-        }// end if TDC group
-        /// debugging data
+        } // end if TDC group
+        
+	/// debugging data
         else if (typeTDC==0x6 || typeTDC==0x7 || typeTDC==0xF ){
             if(m_debug)
                 cout << "  ---> Error, debugging data or empty ROS!" << endl;
         }
-
-        return;
+	
+        return evID ;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ReaderROS8::readPU(FILE * infile, int & wordCount, int & puOffset){
     if(m_debug)
         cout << "START PU data unpacking!" << endl;
@@ -681,6 +693,7 @@ void ReaderROS8::readPU(FILE * infile, int & wordCount, int & puOffset){
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 long ReaderROS8::readWord(FILE * infile, int & wordCount){
 
     //NB size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
@@ -698,9 +711,9 @@ long ReaderROS8::readWord(FILE * infile, int & wordCount){
         wordCount++;
         m_integrity = 1;
 
-        if(m_debug)
-            cout << "Reading word.... ---> (hex) " << hex << word << dec << "   " << endl;
-//            //cout << ", (dec) " << dec << word << endl;
+        //if(m_debug)
+            //cout << "Reading word.... ---> (hex) " << hex << word << dec << "   " << endl;
+            //cout << ", (dec) " << dec << word << endl;
     }
 
     return word;

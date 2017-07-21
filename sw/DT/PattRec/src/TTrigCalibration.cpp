@@ -1,7 +1,8 @@
 #include "TTrigCalibration.h"
-  
-int N_ROB[19]={0, 1, 2, 6, 3, 4, 5, 12, 13, 14, 24, 15, 16, 17, 18, 19, 21, 22, 23};
 
+//ALTEA  
+//int N_ROB[19]={0, 1, 2, 6, 3, 4, 5, 12, 13, 14, 24, 15, 16, 17, 18, 19, 21, 22, 23};
+int N_ROB[6]={0, 1, 2, 4, 5, 6};
 
 TTrigCalibration::TTrigCalibration() {
 
@@ -11,7 +12,6 @@ TTrigCalibration::TTrigCalibration() {
   DEBUG_TTRIGBIN = 0;
 
   hDebugFile = new TFile("./output/DTTimeBoxFitter.root", "RECREATE");
-
 
   // init histograms and variables
   initVariables();
@@ -27,12 +27,12 @@ TTrigCalibration::TTrigCalibration() {
 
 TTrigCalibration::~TTrigCalibration() {
   
-  for(int i=0; i<25; i++)
+  for(int i=0; i<8; i++)
     {
       delete htbox_ROB[i];
     }
   
-  for(int i=0; i<8; i++)
+  for(int i=0; i<3; i++)
     {
       delete htbox_SL[i];
     }
@@ -60,7 +60,7 @@ void TTrigCalibration::initHistos(){
   if(DEBUG_TTRIG)
     cout << "TTrigCalibration::initHistos" << endl; 
 
-  for(int j=0; j<25; j++)
+  for(int j=0; j<8; j++)
     {
       TString tBname( "htbox" );
       tBname += "_ROB_";
@@ -71,11 +71,11 @@ void TTrigCalibration::initHistos(){
 				 hROBWidth, hROBEdgeL, hROBEdgeH );
     }
 
-  for(int j=0; j<8; j++)
+  for(int j=0; j<3; j++)
     {
       TString tBname( "htbox" );
       tBname += "_SL_";
-      tBname += j ;
+      tBname += j+1 ;
       
       htbox_SL[  j] = new TH1F( tBname,
 				tBname,
@@ -96,24 +96,25 @@ void TTrigCalibration::initVariables(){
   if(DEBUG_TTRIG)
     cout << "TTrigCalibration::initVariables" << endl; 
 
-  for(int i=0;i<19;i++) TTrig_ROB_mean[i]=0.;
-  for(int i=0;i<19;i++) TTrig_ROB_RMS[i]=0.;
-  for(int i=0;i<8;i++) TTrig_mean[i]=0.;
-  for(int i=0;i<8;i++) TTrig_RMS[i]=0.;
+  for(int i=0;i<6;i++) TTrig_ROB_mean[i]=0.;
+  for(int i=0;i<6;i++) TTrig_ROB_RMS[i]=0.;
+  for(int i=0;i<3;i++) TTrig_mean[i]=0.;
+  for(int i=0;i<3;i++) TTrig_RMS[i]=0.;
  
+  //ALTEA
   //time boxes (ns) for each ROB
-  hROBWidth = 2000;
+  hROBWidth = 4000;
   hROBEdgeL = 500;
-  hROBEdgeH = 2500;
+  hROBEdgeH = 4500;
 
   //time boxes (ns) for each SL
-  hSLWidth = 2000;
+  hSLWidth = 4000;
   hSLEdgeL = 500;
-  hSLEdgeH = 2500;
+  hSLEdgeH = 4500;
 
   //cut on raw time
-  rtime_min=1000;
-  rtime_max=2500;
+  rtime_min=0;
+  rtime_max=4500;
 
   if(DEBUG_TTRIG)
     cout << "TTrigCalibration::initVariables DONE" << endl; 
@@ -186,27 +187,30 @@ void TTrigCalibration::fillHistos(HITCollection * hits){
     HIT *hit = hits->hit(i);
     if(hit->rtime()>rtime_min && hit->rtime()<rtime_max){
 
-      float dtime = hit->rtime()-hit->t0();
-      
+       float dtime = hit->rtime() - hit->t0();
+       //float dtime = hit->rtime();
+
       int ROB_Id = hit->ROB_ID();
       htbox_ROB[ROB_Id]->Fill(dtime);
       
-      int sl=0;
-      if(hit->CH_ID()==8) sl=0;
-      if(hit->CH_ID()==9) sl=1;
-      if(hit->CH_ID()==10){
-	if(hit->SL_ID()==1)sl=2;
-	if(hit->SL_ID()==2)sl=3;
-	if(hit->SL_ID()==3)sl=4;
-      }
-      if(hit->CH_ID()==11){
-	if(hit->SL_ID()==1)sl=5;
-	if(hit->SL_ID()==2)sl=6;
-	if(hit->SL_ID()==3)sl=7;
-      }
+      //int sl=0;
+      //if(hit->CH_ID()==8) sl=0;
+      //if(hit->CH_ID()==9) sl=1;
+      //if(hit->CH_ID()==10){
+	//if(hit->SL_ID()==1)sl=2;
+	//if(hit->SL_ID()==2)sl=3;
+	//if(hit->SL_ID()==3)sl=4;
+      //}
+      //if(hit->CH_ID()==11){
+	//if(hit->SL_ID()==1)sl=5;
+	//if(hit->SL_ID()==2)sl=6;
+	//if(hit->SL_ID()==3)sl=7;
+      //}
 	  
-      htbox_SL[sl]->Fill(dtime);
-
+      //htbox_SL[sl]->Fill(dtime);
+      
+      //ALTEA
+      htbox_SL[hit->SL_ID()-1]->Fill(dtime);
       
     } //close cut on time
   } //end hit loop
@@ -221,16 +225,16 @@ void TTrigCalibration::computeTTrig(int flag) {
   // NB flag: 0=TBOX_ROB, 1=TBOX_SL
   
   if(DEBUG_TTRIG)
-    cout << "TTrigCalibration::updateCanvas() " << ", _flagCanvasTROB " << _flagCanvasTROB
+    cout << "TTrigCalibration::computeTTrig() " << ", _flagCanvasTROB " << _flagCanvasTROB
 	 << ", _flagCanvasTSL " << _flagCanvasTSL << " *** flag " << flag << endl; 
   
   //TROB
   if(flag==0){
     //    TBOX_ROB->cd();
-    double TTRIG_ROB_ORD[19];
-    double RMS_ROB_ORD[19];
+    double TTRIG_ROB_ORD[6];
+    double RMS_ROB_ORD[6];
     
-    for(int i=0;i<25;i++){
+    for(int i=0;i<8;i++){
       pad_time_ROB->cd(i+1);
       htbox_ROB[i]->Draw();	
       
@@ -292,28 +296,37 @@ void TTrigCalibration::computeTTrig(int flag) {
     
   }
   
-  
+  //ALTEA nel nostro caso flag==1
 
   if(flag==1){
     // TBOX_SL->cd();
-    double TTRIG_SL_ORD[8];
-    double RMS_SL_ORD[8];
-    for(int i=0;i<8;i++){
+    double TTRIG_SL_ORD[3];
+    double RMS_SL_ORD[3];
+
+    for(int i=0;i<3;i++){
       pad_time_SL->cd(i+1);
-      htbox_SL[i]->Draw();	
-      if( htbox_SL[i]->GetEntries()>0 ) {
-	double TTRIG_SL,RMS_SL;
+      htbox_SL[i]->Write();	
+      
+	if( htbox_SL[i]->GetEntries()>0 ) {
+	double TTRIG_SL;
+	double RMS_SL;
 	fitTimeBox(htbox_SL[i],TTRIG_SL,RMS_SL);
     	TTRIG_SL_ORD[i]=TTRIG_SL;
 	RMS_SL_ORD[i]=RMS_SL;
+	
       }
     }
-    for(int i=0;i<8;i++){
-      cout<<" SL n."<<i<<"  TTRIG (ns) = "<<TTRIG_SL_ORD[i]<<"  RMS (ns) = "<<RMS_SL_ORD[i]<<endl;
-      if(RMS_SL_ORD[i]<20.){
-	TTrig_mean[i]=TTRIG_SL_ORD[i];
-	TTrig_RMS[i]=RMS_SL_ORD[i];
-      }
+    for(int i=0;i<3;i++){
+      cout<<" SL n."<<i+1<<"  TTRIG (ns) = "<<TTRIG_SL_ORD[i]<<"  RMS (ns) = "<<RMS_SL_ORD[i]<<endl;
+
+      //ALTEA io non voglio che sia <20
+      //if(RMS_SL_ORD[i]<20.){ 
+      //TTrig_mean[i]=TTRIG_SL_ORD[i];
+	//TTrig_RMS[i]=RMS_SL_ORD[i];
+      //}
+      
+	  TTrig_mean[i]=TTRIG_SL_ORD[i];
+	  TTrig_RMS[i]=RMS_SL_ORD[i];
     }
     
     // TBOX_SL->Update();
@@ -333,8 +346,8 @@ void TTrigCalibration::dumpHistos(char* fileName){
   file->cd();
   
   //TDC plots    
-  for(int i=0;i<25;i++) htbox_ROB[i]->Write();	
-  for(int i=0;i<8;i++) htbox_SL[i]->Write();
+  for(int i=0;i<8;i++) htbox_ROB[i]->Write();	
+  for(int i=0;i<3;i++) htbox_SL[i]->Write();
 
   file->Close();
   delete file;
@@ -352,12 +365,13 @@ void TTrigCalibration::dumpHistos(char* fileName){
 
 void TTrigCalibration::saveTTrigFile(int runN){
   
-  for(int i=0;i<19;i++)
+  for(int i=0;i<6;i++)
     cout<<" ROB n."<<N_ROB[i]<<"  TTRIG (ns) = "<<TTrig_ROB_mean[i]<<"  RMS (ns) = "<<TTrig_ROB_RMS[i]<<endl;
-  int CH[8]={8,9,10,10,10,11,11,11};
-  int SL[8]={1,3,1,2,3,1,2,3};
-  for(int i=0;i<8;i++)
-    cout<<" CH n."<<CH[i]<<" SL n."<<SL[i]<<"  TTRIG (ns) = "<<TTrig_mean[i]<<"  RMS (ns) = "<<TTrig_RMS[i]<<endl;
+  //int CH[8]={8,9,10,10,10,11,11,11};
+  //int SL[8]={1,3,1,2,3,1,2,3};
+  for(int i=0;i<3;i++)
+    cout << "SL n. " << i+1 << "	TTRIG (ns) = " << TTrig_mean[i] << "		RMS (ns) = " << TTrig_RMS[i] << endl;
+    //cout<<" CH n."<<CH[i]<<" SL n."<<SL[i]<<"  TTRIG (ns) = "<<TTrig_mean[i]<<"  RMS (ns) = "<<TTrig_RMS[i]<<endl;
   
   
   FILE *fttrig;
@@ -366,8 +380,8 @@ void TTrigCalibration::saveTTrigFile(int runN){
   fttrig=fopen(fname,"w");
   if(DEBUG_TTRIG)
     cout << "Opening file " << fname << endl;
-  for(int i=0;i<8;i++)
-    fprintf(fttrig,"%4d  %4d  %10.2f  %10.2f\n",CH[i],SL[i],TTrig_mean[i],TTrig_RMS[i] );
+  for(int i=0;i<3;i++)
+    fprintf(fttrig,"%4d %4d %10.2f  %10.2f\n",/*CH[i],SL[i]*/11, i+1, TTrig_mean[i],TTrig_RMS[i] );
   fclose(fttrig);
   
   
@@ -376,20 +390,21 @@ void TTrigCalibration::saveTTrigFile(int runN){
 
 void TTrigCalibration::dumpTTrigs(char * calibFileName){
   
-  for(int i=0;i<19;i++)
+  for(int i=0;i<6;i++)
     cout<<" ROB n."<<N_ROB[i]<<"  TTRIG (ns) = "<<TTrig_ROB_mean[i]<<"  RMS (ns) = "<<TTrig_ROB_RMS[i]<<endl;
-  int CH[8]={8,9,10,10,10,11,11,11};
-  int SL[8]={1,3,1,2,3,1,2,3};
-  for(int i=0;i<8;i++)
-    cout<<" CH n."<<CH[i]<<" SL n."<<SL[i]<<"  TTRIG (ns) = "<<TTrig_mean[i]<<"  RMS (ns) = "<<TTrig_RMS[i]<<endl;
+  //int CH[8]={8,9,10,10,10,11,11,11};
+  //int SL[8]={1,3,1,2,3,1,2,3};
+  for(int i=0;i<3;i++)
+    cout << "SL n. " << i+1 << "	TTRIG (ns) = " << TTrig_mean[i] << "		RMS (ns) = " << TTrig_RMS[i] << endl;
+    //cout<<" CH n."<<CH[i]<<" SL n."<<SL[i]<<"  TTRIG (ns) = "<<TTrig_mean[i]<<"  RMS (ns) = "<<TTrig_RMS[i]<<endl;
   
   
   FILE *fttrig;
   fttrig=fopen(calibFileName,"w");
   if(DEBUG_TTRIG)
     cout << "Opening file " << calibFileName << endl;
-  for(int i=0;i<8;i++)
-    fprintf(fttrig,"%4d  %4d  %10.2f  %10.2f\n",CH[i],SL[i],TTrig_mean[i],TTrig_RMS[i] );
+  for(int i=0;i<3;i++)
+    fprintf(fttrig,"%4d %4d %10.2f  %10.2f\n",/*CH[i],SL[i],*/11, i+1, TTrig_mean[i],TTrig_RMS[i] );
   fclose(fttrig);
   
   
@@ -413,6 +428,7 @@ void TTrigCalibration::fitTimeBox(TH1F *hTimeBox, double& mean, double& sigma) {
   double tBoxMax=0;     // The max of the time box, it is used as seed for gaussian integral
   
   TH1F *hTimeBoxForSeed = (TH1F*) hTimeBox->Clone(); //FIXME: test
+  
   getFitSeeds(hTimeBoxForSeed, xValue, xFitSigma, tBoxMax, xFitMin, xFitMax);
   
   // Define the fitting function and use fit seeds
@@ -457,7 +473,7 @@ void TTrigCalibration::getFitSeeds(TH1F *hTBox, double& mean, double& sigma, dou
   
   
   // The approximate width of the time box
-  static const int tBoxWidth = 400; //FIXE: tune it
+  static const int tBoxWidth = 400; //FIXME: tune it
   
   int nBins = hTBox->GetNbinsX();
   const int xMin = (int)hTBox->GetXaxis()->GetXmin();

@@ -4,13 +4,15 @@ static const bool calcola_spline=1;
 
 Save_HistosAndTree::Save_HistosAndTree(){
   count_graph=0;
+  m_nmaxseg = 6;
+  m_nmaxseg_glo = 4;
+
   return;
 }
 
 Save_HistosAndTree::~Save_HistosAndTree(){
   return;
 }
-
 
 void Save_HistosAndTree::initHB(int runID, int numEvent, ofstream *HBFile){
   
@@ -105,9 +107,9 @@ void Save_HistosAndTree::dumpHB(Track *track, HITCollection *hits,int numEvent,o
       TRACK_HB track_HB;
       
       int nlay=8; 
-      double res_glo[nmaxseg][nlay];
+      double res_glo[m_nmaxseg][nlay];
       int seg=0; 
-      for(int jj=0;jj<nmaxseg;jj++)
+      for(int jj=0;jj<m_nmaxseg;jj++)
 	for(int j=0;j<nlay;j++){
 	  res_glo[jj][j]=-999.;  
 	}
@@ -154,7 +156,7 @@ void Save_HistosAndTree::dumpHB(Track *track, HITCollection *hits,int numEvent,o
       } // close loop on hits
       
       
-      for(int i=0; i<nmaxseg; i++){
+      for(int i=0; i<m_nmaxseg; i++){
 	track_HB.chamber=-999;
 	track_HB.nPoints = -999;
 	track_HB.XorZ=-999;
@@ -461,7 +463,7 @@ void Save_HistosAndTree::dumpTree_Track(Track *track, HITCollection *hits,int nu
 	printf("If track->Get_IsGood(0) && track->Get_IsGood(1)...\n");
 
       int inseg=0;
-      for(int i=0; i<nmaxseg; i++){
+      for(int i=0; i<m_nmaxseg; i++){
 	
 	int nlay=0; 
 	if(i==0 || i==2) nlay=8;
@@ -515,7 +517,7 @@ void Save_HistosAndTree::dumpTree_Track(Track *track, HITCollection *hits,int nu
 	if(i==3 && track->Get_IsGood_glo(3) ) k_glo=-2300-track->Get_NPT_glo(i);
 	
 	fillVar(k,inseg,track->Get_Slope(i),track->Get_X0(i),track->Get_T0(i),track->Get_Chi2(i),res,i);
-    if(i<nmaxseg_glo)
+    if(i<m_nmaxseg_glo)
 	  fillVar_glo(k_glo,inseg,track->Get_Slope_glo(i),track->Get_erSlope_glo(i),track->Get_X0_glo(i),track->Get_erX0_glo(i),track->Get_T0_glo_fin(i),track->Get_Chi2_glo(i),res_glo,i);
   
 	if(DEBUG_STORETRACK) 
@@ -693,7 +695,7 @@ void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEven
 	printf("Filling Histo for res\n");
       
       int inseg=0;
-      for(int i=0; i<nmaxseg; i++){
+      for(int i=0; i<m_nmaxseg; i++){
 	
 	int nlay=0; 
 	if(i==0 || i==2) nlay=8;
@@ -1064,7 +1066,7 @@ void Save_HistosAndTree::initHistos(){
   h_resSLdown=new TH1F("h_resSLdown","Residui SL2 (um)",1000,-2000.,2000.);
   
   if(calcola_spline)
-    for(int i=0; i<nmaxseg; i++)
+    for(int i=0; i<m_nmaxseg; i++)
       for(int slo=0; slo<8; slo++)  
 	h_lincorr[i][slo]=new TH2F(Form("h_lincorr_seg%d_slope%d",i,slo),Form("dist track-wire (ns) VS res (ns), seg%d slope%d",i,slo),90,0,450,100,-50,50);
 
@@ -1151,7 +1153,7 @@ void Save_HistosAndTree::writeHistos(){
   h_resSLdown->Write();
 
   if(calcola_spline)
-    for(int i=0; i<nmaxseg; i++)
+    for(int i=0; i<m_nmaxseg; i++)
       for(int slo=0; slo<8; slo++)  
 	h_lincorr[i][slo]->Write();  
   if(calcola_spline)
@@ -1227,7 +1229,7 @@ void Save_HistosAndTree::resetHistos()
   h_resSLdown->Reset();
 
   if(calcola_spline)
-    for(int i=0; i<nmaxseg; i++)
+    for(int i=0; i<m_nmaxseg; i++)
       for(int slo=0; slo<8; slo++)  
 	h_lincorr[i][slo]->Reset();  
   if(calcola_spline)
@@ -1303,7 +1305,7 @@ void Save_HistosAndTree::deleteHistos()
   h_resSLdown->Delete();
 
   if(calcola_spline)
-    for(int i=0; i<nmaxseg; i++)
+    for(int i=0; i<m_nmaxseg; i++)
       for(int slo=0; slo<8; slo++)  
 	h_lincorr[i][slo]->Delete();  
   if(calcola_spline)
@@ -1328,43 +1330,43 @@ void Save_HistosAndTree::initTree(){
   ohtime_tube = new int[108];  // time new tube to be tested
   oNhit_tube = new int[18];  // Nhit new tube to be tested
   
-  onseg = nmaxseg;
-  onseg_glo = nmaxseg_glo;
-  osegS = new float[nmaxseg];
-  osegX = new float[nmaxseg];
-  osegK = new float[nmaxseg];
-  osegN = new int[nmaxseg];
-  osegT0 = new float[nmaxseg];
-  osl1r = new float[nmaxseg];
-  osl2r = new float[nmaxseg];
-  osl3r = new float[nmaxseg];
-  osl4r = new float[nmaxseg];
-  osl5r = new float[nmaxseg];
-  osl6r = new float[nmaxseg];
-  osl7r = new float[nmaxseg];
-  osl8r = new float[nmaxseg];
-  osegS_glo = new float[nmaxseg];
-  osegerS_glo = new float[nmaxseg];
-  osegX_glo = new float[nmaxseg];
-  osegerX_glo = new float[nmaxseg];
-  osegK_glo = new float[nmaxseg];
-  osegN_glo = new int[nmaxseg];
-  osegT0_glo = new float[nmaxseg];
-  osl1r_glo = new float[nmaxseg];
-  osl2r_glo = new float[nmaxseg];
-  osl3r_glo = new float[nmaxseg];
-  osl4r_glo = new float[nmaxseg];
-  osl5r_glo = new float[nmaxseg];
-  osl6r_glo = new float[nmaxseg];
-  osl7r_glo = new float[nmaxseg];
-  osl8r_glo = new float[nmaxseg];
+  onseg = m_nmaxseg;
+  onseg_glo = m_nmaxseg_glo;
+  osegS = new float[m_nmaxseg];
+  osegX = new float[m_nmaxseg];
+  osegK = new float[m_nmaxseg];
+  osegN = new int[m_nmaxseg];
+  osegT0 = new float[m_nmaxseg];
+  osl1r = new float[m_nmaxseg];
+  osl2r = new float[m_nmaxseg];
+  osl3r = new float[m_nmaxseg];
+  osl4r = new float[m_nmaxseg];
+  osl5r = new float[m_nmaxseg];
+  osl6r = new float[m_nmaxseg];
+  osl7r = new float[m_nmaxseg];
+  osl8r = new float[m_nmaxseg];
+  osegS_glo = new float[m_nmaxseg];
+  osegerS_glo = new float[m_nmaxseg];
+  osegX_glo = new float[m_nmaxseg];
+  osegerX_glo = new float[m_nmaxseg];
+  osegK_glo = new float[m_nmaxseg];
+  osegN_glo = new int[m_nmaxseg];
+  osegT0_glo = new float[m_nmaxseg];
+  osl1r_glo = new float[m_nmaxseg];
+  osl2r_glo = new float[m_nmaxseg];
+  osl3r_glo = new float[m_nmaxseg];
+  osl4r_glo = new float[m_nmaxseg];
+  osl5r_glo = new float[m_nmaxseg];
+  osl6r_glo = new float[m_nmaxseg];
+  osl7r_glo = new float[m_nmaxseg];
+  osl8r_glo = new float[m_nmaxseg];
 
 
   return; 
 }
 
 
-void Save_HistosAndTree::bookTree(TTree* tree)
+void Save_HistosAndTree::bookTree(TTree* tree,bool n2chambers)
 {
   if ( DEBUG_TREE ) cout << "Book output tree" << endl;
 
@@ -1391,23 +1393,24 @@ void Save_HistosAndTree::bookTree(TTree* tree)
   tree->Branch( "SEG_6r",  osl6r,   "l6r[ntes]/F" );
   tree->Branch( "SEG_7r",  osl7r,   "l7r[ntes]/F" );
   tree->Branch( "SEG_8r",  osl8r,   "l8r[ntes]/F" );
-  tree->Branch( "SEG_ns_glo", &onseg_glo,  "ntes_glo/I" );
-  tree->Branch( "SEG_sx_glo",  osegX_glo,  "X_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_ersx_glo",osegerX_glo,"Xer_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_ss_glo",  osegS_glo,  "SLOPE_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_erss_glo",osegerS_glo,"SLOPEer_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_sk_glo",  osegK_glo,  "CHI2_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_sn_glo",  osegN_glo,  "NPT_glo[ntes_glo]/I" );
-  tree->Branch( "SEG_t0_glo",  osegT0_glo, "T0_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_1r_glo",  osl1r_glo,   "l1r_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_2r_glo",  osl2r_glo,   "l2r_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_3r_glo",  osl3r_glo,   "l3r_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_4r_glo",  osl4r_glo,   "l4r_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_5r_glo",  osl5r_glo,   "l5r_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_6r_glo",  osl6r_glo,   "l6r_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_7r_glo",  osl7r_glo,   "l7r_glo[ntes_glo]/F" );
-  tree->Branch( "SEG_8r_glo",  osl8r_glo,   "l8r_glo[ntes_glo]/F" );
-
+  if(n2chambers){
+      tree->Branch( "SEG_ns_glo", &onseg_glo,  "ntes_glo/I" );
+      tree->Branch( "SEG_sx_glo",  osegX_glo,  "X_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_ersx_glo",osegerX_glo,"Xer_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_ss_glo",  osegS_glo,  "SLOPE_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_erss_glo",osegerS_glo,"SLOPEer_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_sk_glo",  osegK_glo,  "CHI2_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_sn_glo",  osegN_glo,  "NPT_glo[ntes_glo]/I" );
+      tree->Branch( "SEG_t0_glo",  osegT0_glo, "T0_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_1r_glo",  osl1r_glo,   "l1r_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_2r_glo",  osl2r_glo,   "l2r_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_3r_glo",  osl3r_glo,   "l3r_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_4r_glo",  osl4r_glo,   "l4r_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_5r_glo",  osl5r_glo,   "l5r_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_6r_glo",  osl6r_glo,   "l6r_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_7r_glo",  osl7r_glo,   "l7r_glo[ntes_glo]/F" );
+      tree->Branch( "SEG_8r_glo",  osl8r_glo,   "l8r_glo[ntes_glo]/F" );
+}
   if ( DEBUG_TREE ) cout << "End booking" << endl;
   return;
 }

@@ -25,9 +25,9 @@ using std::string;
 #include "Save_HistosAndTree.h"
 #include "Track_IO.h"
 #include "TTrigCalibration.h"
-
 // SV 100203-05 include TOMTOOL classes
 #include "RawHistos.h"
+#include "Occupancy.h" //ALTEA
 
 class ReaderROS8
 {
@@ -37,9 +37,9 @@ public:
 
     void setDebug(bool debug) { m_debug=debug; return;}
 
-    void readEvent(FILE *infile, HITCollection *hits);
-    void readROS(FILE * infile, int & wordCount, int &rosOffset, HITCollection *hits);
-    void readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCollection *hits);
+    int readEvent(FILE *infile, HITCollection *hits);
+    int readROS(FILE * infile, int & wordCount, int &rosOffset, HITCollection *hits);
+    int readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCollection *hits);
     void readPU(FILE * infile, int & wordCount, int &puOffset);
     long readWord(FILE *infile, int &wordCount);
 
@@ -60,7 +60,7 @@ public:
 
  // member functions
  void goAnalysis(TString fin, int maxEvent=100, int runN=0, int runTrig=0);
- void goAnalysis(TString fin, int maxEvent=100, int runN=0, int runTrig=0, bool ttrig=0);
+ void goAnalysis(TString fin, int maxEvent=100, int runN=0, int runTrig=0, bool ttrigs=0, bool n2chambers=0);
 
  void fillMap();
  void checkMap();
@@ -100,6 +100,10 @@ private:
  // debug glag
  bool m_debug;
  bool m_integrity;
+
+ //ALTEA
+ Occupancy	  *_occupancy;
+ ofstream fout;
 
 };
 

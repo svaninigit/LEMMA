@@ -231,7 +231,7 @@ void RawAnalyzer::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, b
               //cut sulle hit per doppia lettura front end //
               //hits->Clean2FE();
 
-              track->SelectTrack(hits,corr);
+              track->SelectTrack(hits,corr,1);
               if(track->Track_IsGood()){
                   if(DUMP_HISTOS){
 

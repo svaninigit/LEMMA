@@ -31,7 +31,7 @@ class Track {
   // default destructor
   ~Track();
 
-  void SelectTrack(HITCollection *hits, TimeCorr *corr); 
+  void SelectTrack(HITCollection *hits, TimeCorr *corr, bool n2chambers=1);
   HITColl_Seg * SelectSeg(HITCollection *hits, int i, int CH, bool phi);
   float Get_MeanWire(HITColl_Seg *hit_seg);
   bool Track_IsGood();

@@ -8,11 +8,12 @@
 #include <map>
 
 //---- Core
-#include "src/Options.h"
+#include "../../Common/src/Options.h"
 
 //---- DT classes
 #include "src/RawAnalyzer.h"
 #include "src/ReaderROS8.h"
+#include "../../Common/src/EventBuilder.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // RECIPE PARAMETERS //
@@ -20,12 +21,15 @@
 
 namespace {
     static struct Parameters : Options {
-        std::string inFileName;
-        std::string outFileName;
+        std::string inputDTFile;
+        std::string rootDTFile;
+        std::string inputSiFile;
+        std::string outputFile;
         int runNum;
         int nEvents;
         int ttrigRunNum;
         bool ttrigFlag;
+        bool n2chambers;
         std::string execute;
 
         struct Unpack {
@@ -41,13 +45,15 @@ namespace {
         ("help", "printout help")
 
         // GENERAL //
-        ("inFileName",           &inFileName,           std::string("test"),              "Input file name")
-        ("outFileName",         &outFileName,        std::string("test"),              "Output root file name")
-        ("runNum",                 &runNum,                (int)0.,                                 "Run number ID")
+        ("inputDTFile",           &inputDTFile,          std::string("test"),              "DT  chamber raw data file")
+        ("rootDTFile",           &rootDTFile,            std::string("test"),              "DT  chamber reconstructed data file")
+        ("inputSiFile",            &inputSiFile,             std::string("test"),              "Si detectors raw data file")
+        ("outputFile",             &outputFile,              std::string("test"),              "Output file name")
+        ("runNum",                 &runNum,                (int)0.,                                  "Run number ID")
         ("nEvents",                 &nEvents,                (int)10.,                                "number of events to read")
         ("ttrigRunNum",         &ttrigRunNum,        (int)0.,                                 "Run number ID to compute time-trig calibration")
-        ("ttrigFlag",                &ttrigFlag,                 (bool)0.,                              "Flag for activate the ttrig computation")
-        ("execute",                 &execute,                 std::string("pattrec"),         "Execution options: ttrig, pattrec, analysis, dump - TO BE IMPLEMENTED")
+        ("n2chambers",         &n2chambers,         (bool)0,                               "Flag for activate 2 chambers analysis")
+        ("execute",                 &execute,                 std::string("pattrec"),         "Execution options: ttrig, pattrec, eventbuild")
 
         // UNPACK //
         ("unpack.debug",       &unpack.debug,     false,                                     "enable debugging dumps in unpacking code")
@@ -80,11 +86,36 @@ int main(int argc, char **argv) {
 //   analyze->goAnalysis(p.inFileName, p.nEvents, p.runNum, p.ttrigRunNum, p.ttrigFlag);
 
     //--- Recipe for ROS8 data
-    ReaderROS8 *analyze=new ReaderROS8();
-    analyze->setDebug(p.unpack.debug);
-    analyze->goAnalysis(p.inFileName, p.nEvents, p.runNum, p.ttrigRunNum, p.ttrigFlag);
+    ReaderROS8 *reader=new ReaderROS8();
+    reader->setDebug(p.unpack.debug);
 
-   delete analyze;
+    /// ttrig computation
+    if(p.execute=="ttrig"){
+        std::cout << "\n\n *** RUNNING time-trigger computation *** \n\n";
+        reader->goAnalysis(p.inputDTFile, p.nEvents, p.runNum, p.ttrigRunNum, 1, p.n2chambers);
+        delete reader;
+    }
+
+    /// patter recognition
+    else if (p.execute=="pattrec"){
+        std::cout << "\n\n *** RUNNING pattern recognition *** \n\n";
+        reader->goAnalysis(p.inputDTFile, p.nEvents, p.runNum, p.ttrigRunNum, 0, p.n2chambers);
+        delete reader;
+    }
+
+    /// event builder
+    else if (p.execute == "eventbuilder"){
+        std::cout << "\n\n *** RUNNING event builder *** \n\n";
+
+        EventBuilder *builder = new EventBuilder();
+        builder->openDataFiles(p.rootDTFile,p.inputSiFile,p.outputFile);
+        builder->matchEvents(p.nEvents);
+        builder->dumpOutput();
+
+        delete builder;
+    }
+
+
 
     return 0;
 }

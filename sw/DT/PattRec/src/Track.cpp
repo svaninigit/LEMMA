@@ -33,7 +33,7 @@ HITColl_Seg * Track::SelectSeg(HITCollection *hits, int i, int CH, bool phi){
   return hit_seg[i];
 }
 
-void Track::SelectTrack(HITCollection *hits, TimeCorr *corr)
+void Track::SelectTrack(HITCollection *hits, TimeCorr *corr, bool n2chambers)
 {
   if(DEBUG_TRACK)
         cout << "Track::SelectTrack" << endl;
@@ -54,6 +54,11 @@ void Track::SelectTrack(HITCollection *hits, TimeCorr *corr)
   
   int nseg=6;
   int nseg_glo=4;
+
+  // 20170720 for LEMMA only 1 chamber
+  if(!n2chambers)
+      nseg_glo=0;
+
   float w_xcorr[nseg]; for(int i=0;i<nseg;i++) w_xcorr[i]=0.;
   int min_pt[6]={MinNHit_Phi,MinNHit_Theta,MinNHit_Phi,MinNHit_Theta,MinNHit_Theta,MinNHit_Theta};
   int max_pt[6]={MaxNHit_Phi,MaxNHit_Theta,MaxNHit_Phi,MaxNHit_Theta,MaxNHit_Theta,MaxNHit_Theta};

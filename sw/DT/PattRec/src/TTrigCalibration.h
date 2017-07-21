@@ -89,10 +89,10 @@ private:
   int _nCanvas;
 
 
-  float TTrig_ROB_mean[19];
-  float TTrig_ROB_RMS[19];
-  float TTrig_mean[8];
-  float TTrig_RMS[8]; 
+  float TTrig_ROB_mean[6];
+  float TTrig_ROB_RMS[6];
+  float TTrig_mean[3];
+  float TTrig_RMS[3]; 
   
   //time boxes (ns) for each ROB
   int hROBWidth;
@@ -115,8 +115,8 @@ private:
 
 
   //histos
-  TH1F          * htbox_ROB[25];
-  TH1F          * htbox_SL[8];
+  TH1F          * htbox_ROB[8];
+  TH1F          * htbox_SL[3];
 
   TFile *hDebugFile;
 

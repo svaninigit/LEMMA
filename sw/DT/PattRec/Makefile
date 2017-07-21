@@ -25,17 +25,21 @@ LIBS           = $(ROOTLIBS) -L$(BOOSTLIBS) -lboost_program_options -lgcc -lm -l
 GLIBS        = $(ROOTGLIBS)
 
 # files
-CPP_FILES := $(wildcard src/*.cpp)
+TOP := $(realpath ../../)
+CPP_FILES :=  $(wildcard $(TOP)/DT/PattRec/src/*.cpp)
+CPP_FILES +=  $(wildcard $(TOP)/Common/src/*.cpp)
 OBJ_FILES := $(addprefix obj/,$(notdir $(CPP_FILES:.cpp=.o)))
 
 #---- rules --------------------------------------------------------------------------
-
 all: runPR
 
 runPR: $(OBJ_FILES) main.o
 	${CXX}  -o runPR ${CXXFLAGS} main.o $(OBJ_FILES) $(LIBS) $(GLIBS)
 
-obj/%.o: src/%.cpp
+obj/%.o: $(TOP)/*/*/src/%.cpp
+	${CXX} ${CXXFLAGS} -c -o $@ $<
+
+obj/%.o: $(TOP)/*/src/%.cpp
 	${CXX} ${CXXFLAGS} -c -o $@ $<
 
 main.o:
