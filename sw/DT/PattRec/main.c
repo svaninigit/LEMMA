@@ -114,9 +114,19 @@ int main(int argc, char **argv) {
 
         delete builder;
     }
+    else if (p.execute == "geotest"){
+        Geom * geo = new Geom();
 
+        for(int isl=2; isl <= 2; isl++){
+            //if (isl==2) isl=3;
+                for(int iw=1; iw < 100; iw++)
+                    for(int il=1; il <= 4; il++){
+                    std::cout << "SL " << isl << ", LAY " << il << ", WIRE " << iw;
+                    std::cout << "        ------------->        X wire " << geo->get_x_wire(11,isl,il,iw) << std::endl;
+                }
+        }
 
-
+    }
     return 0;
 }
 

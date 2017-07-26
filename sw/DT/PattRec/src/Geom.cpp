@@ -4,33 +4,56 @@
 bool debug_geom  = false;
 
 
-Geom::~Geom()
+Geom::Geom()
 {   
+    // MB3 default for LNL stand
+    m_chtype = 3;
+
+    // MB2 LEMMa tb
+    m_chtype = 2;
+
   return;
+}
+
+Geom::~Geom()
+{
+    return;
 }
 
 float Geom::get_x_wire(int CH, int SL, int L, int W)
 {
+
   float _x = 0;
-  if( (CH==11 && (SL==1||SL==3)) 
-      || CH==9 ||CH==8){
-    if(L==1 || L==3 || L==5 || L==7)
+
+  /// PHI SL
+  // chamber 11 --> LEMMA tb and LNL upper chamber
+  if( (CH==11 && (SL==1||SL==3)) || CH==9 ||CH==8){
+    if(L==1 || L==3)
       _x= (W-1)*4.2-148.6;
-    if(L==2 || L==4 || L==6 || L==8)
+    if(L==2 || L==4)
       _x= (W-1)*4.2-150.7;
+
+    // add SL phi1 staggering
+    if(m_chtype==2 && SL==1)
+        _x += 4.2;
   }
+
+  // chamber 10 --> LNL lower chamber
   if( CH==10 && (SL==1||SL==3) ){
-    if(L==1 || L==3 || L==5 || L==7)
+    if(L==1 || L==3)
       _x=-(W-1)*4.2+148.6;
-    if(L==2 || L==4 || L==6 || L==8)
+    if(L==2 || L==4)
       _x=-(W-1)*4.2+150.7;
   }
+
+  /// THETA SL
   if( (CH==11||CH==10) && (SL==2) ){
     if(L==1 || L==3)
       _x= 117.35 - (W-1)*4.2;
     if(L==2 || L==4)
       _x= 119.45 - (W-1)*4.2;
   }
+
   return _x;
 }
   

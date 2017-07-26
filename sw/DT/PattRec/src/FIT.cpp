@@ -2,7 +2,6 @@
 
 using namespace std;
 
-
 bool debug_Fit  = false;
 bool debug_Fit_Glo  = false;
 bool debug_FitRes  = false;
@@ -150,6 +149,8 @@ void FIT::FIT_t0(double sigmaPhi, double sigmaTimes, int nrPnts, int nrMinPnts, 
 	  if(debug_Fit)
 	    cout << "Don't fit : total num.points <= num.parameters ! " << endl;
 	  //go to the end of while loop and exit - if there was a previous loop with okFit keep the latest results
+      if(nPF<3)
+          okFit=false;
 	  break;
 	}
       
@@ -514,31 +515,27 @@ void FIT::FIT_t0(double sigmaPhi, double sigmaTimes, int nrPnts, int nrMinPnts, 
   m.first=-999.; q.first=-999.;
   if(okFit)
     {
-      //return solution
-      
+      //return solution    
       if(nrVar>=3 )
-	t0 =  make_pair( (*c_svd)(2) / vdrift , T0_err / vdrift);
-      
-      m = make_pair( (*c_svd)(0) , Phi_err);
-      q = make_pair( (*c_svd)(1), X_err);
+        t0 =  make_pair( (*c_svd)(2) / vdrift , T0_err / vdrift);
+
+        m = make_pair( (*c_svd)(0) , Phi_err);
+        q = make_pair( (*c_svd)(1), X_err);
 
       delete c_svd;
       c_svd=NULL;
-
       
       if(debug_Fit)
-	{
-	  cout << "Solution after fit loop:" << endl;
-	  cout << "x = " << m.first << " * y + " << q.first << endl;
-	  cout << "t0 = " << t0.first << endl;
-	  for(int i=0;i<nrPnts;i++) cout<<ac[i];
-	  cout<<endl;
-	  cout << "NPT = "<< NPT <<", chi2 = "<< chi2<< endl;
-	  cout << "ok fit flag: " << okFit << endl;
-	}		
+        {
+          cout << "Solution after fit loop:" << endl;
+          cout << "x = " << m.first << " * y + " << q.first << endl;
+          cout << "t0 = " << t0.first << endl;
+          for(int i=0;i<nrPnts;i++) cout<<ac[i];
+          cout<<endl;
+          cout << "NPT = "<< NPT <<", chi2 = "<< chi2<< endl;
+          cout << "ok fit flag: " << okFit << endl;
+        }
     } // close if(okFit)
-  
-  
   return;
 }
 

@@ -1,9 +1,9 @@
 #include "ReaderROS8.h"
 
 // output flags
-static const bool DUMP_HISTOS = 1;   // fill root histograms
+static const bool DUMP_HISTOS = 0;   // fill root histograms
 static const bool CREATE_TREE = 1;   // fill root file RADMU
-static const bool DUMP_STAT   = 1;   // save statistics on a txt file
+static const bool DUMP_STAT   = 0;   // save statistics on a txt file
 
 static const double ConvToNs = 25./32.;
 
@@ -215,7 +215,8 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
 
 void ReaderROS8::fillMap(){
 
-  ifstream file("utils/mappaMB2.txt");//"legnaro2ROS25-prototipoFRANCO.txt");
+  ifstream file("utils/mappaMB2.txt");
+//  ifstream file("utils/legnaro2ROS25.txt");
   if(!file.is_open()){
     cout << "ERROR : no channel map file found - exiting ! " << endl;
     exit(1);
@@ -597,11 +598,15 @@ int ReaderROS8::readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCol
                 /// collect hit
                 int rawdata = getTDCid(1,rosChID,tdcID,chID);
                 map<int,int>::iterator iter = chmap.find(rawdata);
+
+                // 20170725 LEMMA suppress no physical channel
+                if(tdcID==3 && rosChID==4 && chID==0)
+                   return 0;
+
                 // SV 100203 add severe failure in case no channel is found in map
                 if(iter==chmap.end()) {
                     cout << "ERROR : no channel is found in map - exit ! " << endl;
-                    cout <<	"Event_Id " << evID << " tdc " << tdcID << " rob " << rosChID << " ch " << chID << endl;
-                    exit;
+                    return 0;
                 }
 
                 // SV 100203 get t0: set t0 from map, otherwise value is 0

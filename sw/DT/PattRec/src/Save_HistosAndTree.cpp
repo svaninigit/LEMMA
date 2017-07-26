@@ -450,100 +450,202 @@ void Save_HistosAndTree::dumpTree_Hits(HITCollection *hits,int numEvent,TTree *t
   
 }
 
-
 void Save_HistosAndTree::dumpTree_Track(Track *track, HITCollection *hits,int numEvent,TTree *tree){
   
   if(DEBUG_STORETRACK) 
     printf("Into dumpTree_Track...\n");
-    
-  if(track->Track_IsGood()){
-    if(track->Get_IsGood(0) && track->Get_IsGood(1)){
 
-      if(DEBUG_STORETRACK) 
-	printf("If track->Get_IsGood(0) && track->Get_IsGood(1)...\n");
+  // check track
+  if(!track->Track_IsGood()) return;
 
-      int inseg=0;
-      for(int i=0; i<m_nmaxseg; i++){
+  // track loop
+  for(int it=0; it<m_nmaxseg; it++){
+
+      if(!track->Get_X0(it)) return;
+
+      //old-nasty code...
+      int k=-999;
+      if(it==0 && track->Get_IsGood(0) ) k= 1300+track->Get_NPT(it);
+      if(it==1 && track->Get_IsGood(1) ) k=-1300-track->Get_NPT(it);
+      if(it==2 && track->Get_IsGood(2) ) k= 2300+track->Get_NPT(it);
+      if(it==3 && track->Get_IsGood(3) ) k=-2300-track->Get_NPT(it);
+      if(it==4 && track->Get_IsGood(4) ) k= 3300+track->Get_NPT(it);
+      if(it==5 && track->Get_IsGood(5) ) k= 4300+track->Get_NPT(it);
+
+      float slope = track->Get_Slope(it);
+      float X0 = track->Get_X0(it);
+      float T0 = track->Get_T0(it);
+      float chi2 = track->Get_Chi2(it);
+
+      // compute residuals
+      double res[8]={-999.,-999.,-999.,-999.,-999.,-999.,-999.,-999};
+      for(int ih=0;ih<hits->Get_NumberHITS();ih++){
+          HIT *hit=hits->hit(ih);
+          int hlay = hit->L_ID();
+          int hsl = hit->SL_ID();
+          int hch = hit->CH_ID();
+
+          // reject hits not on the segment
+          bool rejectHit = true;
+          if(it==0 && hch==11 && (hsl==1 || hsl==3)) rejectHit = false;
+          if(it==1 && hch==11 && hsl==2) rejectHit = false;
+          if(it==2 && hch==10 && (hsl==1 || hsl==3)) rejectHit = false;
+          if(it==3 && hch==10 && hsl==2) rejectHit = false;
+          if(it==4 && hch==9) rejectHit = false;
+          if(it==5 && hch==8) rejectHit = false;
+          if(hit->code_ID().first==0 && hit->code_ID().second==0) rejectHit = true;
+
+          if(rejectHit) continue;
+
+          float hX = -999.;
+          if(hit->code_ID().first==1) hX = hit->Get_XPair(hit->dtime()).first;
+          if(hit->code_ID().second==1) hX = hit->Get_XPair(hit->dtime()).second;
+
+          int jres = (hsl==3)? hlay-1+4 : hlay-1;
+
+          // SV 20170724 for LEMMA tb fill with hX
+          res[jres]= hX - (slope*(hit->y_wire_ID())+X0);
+      }// end hit loop
+
+      // fill....
+      fillVar(k,it,slope,X0,T0,chi2,res,it);
+
+//      /// debugging
+//      std::cout << "*** RESIDUALS :";
+//      for(int ir=0; ir<8; ir++)
+//          std::cout << "   " << res[ir];
+//      std::cout << std::endl;
+
+//      std::cout << "slope " << slope << std::endl;
+//      std::cout << "X " << X0 << std::endl;
+  }// end track loop
 	
-	int nlay=0; 
-	if(i==0 || i==2) nlay=8;
-	else nlay=4;
-	double res[nlay]; for(int j=0;j<nlay;j++) res[j]=-999.;
-	double res_glo[nlay]; for(int j=0;j<nlay;j++) res_glo[j]=-999.; 
-	int jres=0;
-	for(int ih=0;ih<hits->Get_NumberHITS();ih++){
-	  HIT *hit=hits->hit(ih);
-	  if(hit->code_ID().first==1 || hit->code_ID().second==1){
-	    if( (hit->CH_ID()==11 || hit->CH_ID()==10) && hit->SL_ID()==3 )
-	      jres=4+hit->L_ID()-1;
-	    else 
-	      jres=hit->L_ID()-1;
-	    
-	    if(track->Get_IsGood(i)){
-	      if(hit->code_ID().first==1) 
-		res[jres]= hit->Get_XPair(hit->dtime()).first - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
-	      if(hit->code_ID().second==1) 
-		res[jres]= hit->Get_XPair(hit->dtime()).second - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
-	    }
-	    
-	    if(track->Get_IsGood_glo(i)){
-	      if(hit->code_ID().first==1) 
-		res_glo[jres]= hit->Get_XPair(hit->dtime()).first - (-1*0.00547*track->Get_T0_glo(i)+track->Get_Slope_glo(i)*(hit->y_wire_ID())+track->Get_X0_glo(i));
-	      if(hit->code_ID().second==1) 
-		res_glo[jres]= hit->Get_XPair(hit->dtime()).second - (1*0.00547*track->Get_T0_glo(i)+track->Get_Slope_glo(i)*(hit->y_wire_ID())+track->Get_X0_glo(i));
-	    }
-	  }
-	} // close loop on hits
-	
-	
-	if(DEBUG_STORETRACK) 
-	  printf("computing k (NPT)...\n");
-	
-	int k=-999;
-	if(i==0 && track->Get_IsGood(0) ) k= 1300+track->Get_NPT(i); 
-	if(i==1 && track->Get_IsGood(1) ) k=-1300-track->Get_NPT(i); 
-	if(i==2 && track->Get_IsGood(2) ) k= 2300+track->Get_NPT(i); 
-	if(i==3 && track->Get_IsGood(3) ) k=-2300-track->Get_NPT(i);
-	if(i==4 && track->Get_IsGood(4) ) k= 3300+track->Get_NPT(i); 
-	if(i==5 && track->Get_IsGood(5) ) k= 4300+track->Get_NPT(i);
+  if(DEBUG_STORETRACK)
+      printf("All variables filled...\n");
 
-	if(DEBUG_STORETRACK) 
-	  printf("computing k_glo (NPT_glo)...\n");
+  onevent = numEvent;
+  onseg = m_nmaxseg;
 
-	int k_glo=-999;
-	if(i==0 && track->Get_IsGood_glo(0) ) k_glo= 1300+track->Get_NPT_glo(i); 
-	if(i==1 && track->Get_IsGood_glo(1) ) k_glo=-1300-track->Get_NPT_glo(i); 
-	if(i==2 && track->Get_IsGood_glo(2) ) k_glo= 2300+track->Get_NPT_glo(i); 
-	if(i==3 && track->Get_IsGood_glo(3) ) k_glo=-2300-track->Get_NPT_glo(i);
-	
-	fillVar(k,inseg,track->Get_Slope(i),track->Get_X0(i),track->Get_T0(i),track->Get_Chi2(i),res,i);
-    if(i<m_nmaxseg_glo)
-	  fillVar_glo(k_glo,inseg,track->Get_Slope_glo(i),track->Get_erSlope_glo(i),track->Get_X0_glo(i),track->Get_erX0_glo(i),track->Get_T0_glo_fin(i),track->Get_Chi2_glo(i),res_glo,i);
-  
-	if(DEBUG_STORETRACK) 
-	  printf("All variables filled...\ninseg=%d\n",inseg);
-	
-	inseg++;
-      }
-      
-      if(DEBUG_STORETRACK) 
-	printf("All variables filled...\n");
-
-      onevent = numEvent;
-      onseg = inseg;
-      onseg_glo = inseg;
-      
-      if(DEBUG_STORETRACK) 
-	printf("Exiting dumpTree_Track...\n");
-
-    } // close if(track->Get_IsGood(0) && track->Get_IsGood(1))
-  } // close if(Track_IsGood()...)
-
-  if(DEBUG_STORETRACK) 
+  if(DEBUG_STORETRACK)
     printf("Exiting dumpTree_Track...\n");
   
   return;
 }
+
+/// SV 20170725 this is the old BUGGY code....
+//void Save_HistosAndTree::dumpTree_Track(Track *track, HITCollection *hits,int numEvent,TTree *tree){
+
+//    if(DEBUG_STORETRACK)
+//        printf("Into dumpTree_Track...\n");
+
+//    if(track->Track_IsGood()){
+//        if(track->Get_IsGood(0) && track->Get_IsGood(1)){
+
+//            if(DEBUG_STORETRACK)
+//                printf("If track->Get_IsGood(0) && track->Get_IsGood(1)...\n");
+
+//            int inseg=0;
+//            for(int i=0; i<m_nmaxseg; i++){
+
+//                int nlay=0;
+//                if(i==0 || i==2) nlay=8;
+//                else nlay=4;
+//                double res[nlay]; for(int j=0;j<nlay;j++) res[j]=-999.;
+//                double res_glo[nlay]; for(int j=0;j<nlay;j++) res_glo[j]=-999.;
+//                int jres=0;
+//                for(int ih=0;ih<hits->Get_NumberHITS();ih++){
+//                    HIT *hit=hits->hit(ih);
+//                    if(hit->code_ID().first==1 || hit->code_ID().second==1){
+//                        if( (hit->CH_ID()==11 || hit->CH_ID()==10) && hit->SL_ID()==3 )
+//                            jres=4+hit->L_ID()-1;
+//                        else
+//                            jres=hit->L_ID()-1;
+
+//                        if(track->Get_IsGood(i)){
+//                            if(hit->code_ID().first==1)
+//                                res[jres]= hit->Get_XPair(hit->dtime()).first - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
+//                            if(hit->code_ID().second==1)
+//                                res[jres]= hit->Get_XPair(hit->dtime()).second - (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i));
+
+//                            std::cout << "\n Track " << i << "---> Res[" << jres << "]=" << res[jres] << std::endl;
+//                            std::cout << "X left " << hit->Get_XPair(hit->dtime()).first << ", X right " <<  hit->Get_XPair(hit->dtime()).second;
+//                            std::cout << " ---> X fit " << (track->Get_Slope(i)*(hit->y_wire_ID())+track->Get_X0(i)) << std::endl;
+//                            std::cout << "Segment " << i << ", slope " << track->Get_Slope(i) << ", X " << track->Get_X0(i) << std::endl;
+//                        }// close good track
+
+//                        if(track->Get_IsGood_glo(i)){
+//                            if(hit->code_ID().first==1)
+//                                res_glo[jres]= hit->Get_XPair(hit->dtime()).first - (-1*0.00547*track->Get_T0_glo(i)+track->Get_Slope_glo(i)*(hit->y_wire_ID())+track->Get_X0_glo(i));
+//                            if(hit->code_ID().second==1)
+//                                res_glo[jres]= hit->Get_XPair(hit->dtime()).second - (1*0.00547*track->Get_T0_glo(i)+track->Get_Slope_glo(i)*(hit->y_wire_ID())+track->Get_X0_glo(i));
+//                        }
+//                    }// close ID
+//                } // close loop on hits
+
+
+//                if(DEBUG_STORETRACK)
+//                    printf("computing k (NPT)...\n");
+
+//                int k=-999;
+//                if(i==0 && track->Get_IsGood(0) ) k= 1300+track->Get_NPT(i);
+//                if(i==1 && track->Get_IsGood(1) ) k=-1300-track->Get_NPT(i);
+//                if(i==2 && track->Get_IsGood(2) ) k= 2300+track->Get_NPT(i);
+//                if(i==3 && track->Get_IsGood(3) ) k=-2300-track->Get_NPT(i);
+//                if(i==4 && track->Get_IsGood(4) ) k= 3300+track->Get_NPT(i);
+//                if(i==5 && track->Get_IsGood(5) ) k= 4300+track->Get_NPT(i);
+
+//                if(i<m_nmaxseg){
+//                    fillVar(k,inseg,track->Get_Slope(i),track->Get_X0(i),track->Get_T0(i),track->Get_Chi2(i),res,i);
+
+//                    /// debugging
+//                    std::cout << "*** RESIDUALS :";
+//                    for(int ir=0; ir<nlay; ir++)
+//                        std::cout << "   " << res[ir];
+//                    std::cout << std::endl;
+
+//                    std::cout << "slope " << track->Get_Slope(i) << std::endl;
+//                    std::cout << "X " << track->Get_X0(i) << std::endl;
+
+
+//                }
+
+//                if(DEBUG_STORETRACK)
+//                    printf("computing k_glo (NPT_glo)...\n");
+
+//                int k_glo=-999;
+//                if(i==0 && track->Get_IsGood_glo(0) ) k_glo= 1300+track->Get_NPT_glo(i);
+//                if(i==1 && track->Get_IsGood_glo(1) ) k_glo=-1300-track->Get_NPT_glo(i);
+//                if(i==2 && track->Get_IsGood_glo(2) ) k_glo= 2300+track->Get_NPT_glo(i);
+//                if(i==3 && track->Get_IsGood_glo(3) ) k_glo=-2300-track->Get_NPT_glo(i);
+
+//                if(i<m_nmaxseg_glo){
+//                    fillVar_glo(k_glo,inseg,track->Get_Slope_glo(i),track->Get_erSlope_glo(i),track->Get_X0_glo(i),track->Get_erX0_glo(i),track->Get_T0_glo_fin(i),track->Get_Chi2_glo(i),res_glo,i);
+//                }
+
+//                if(DEBUG_STORETRACK)
+//                    printf("All variables filled...\ninseg=%d\n",inseg);
+
+//                inseg++;
+//            }
+
+//            if(DEBUG_STORETRACK)
+//                printf("All variables filled...\n");
+
+//            onevent = numEvent;
+//            onseg = inseg;
+//            onseg_glo = inseg;
+
+//            if(DEBUG_STORETRACK)
+//                printf("Exiting dumpTree_Track...\n");
+
+//        } // close if(track->Get_IsGood(0) && track->Get_IsGood(1))
+//    } // close if(Track_IsGood()...)
+
+//    if(DEBUG_STORETRACK)
+//        printf("Exiting dumpTree_Track...\n");
+
+//    return;
+//}
 
 
 void Save_HistosAndTree::dumpHisto(Track *track, HITCollection *hits,int numEvent){

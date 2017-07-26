@@ -1,11 +1,11 @@
 static const float convToNs = 0.78125;
 static const float velWireProp= 24.4;  // (cm/ns)
 
-static const int MinNHit_Phi = 6; // era 6 
+static const int MinNHit_Phi = 6;
 static const int MaxNHit_Phi = 16;
 static const int MinNHit_1SLPhi = 4; 
 static const int MaxNHit_1SLPhi = 8;
-static const int MinNHit_Theta = 4; // era 4
+static const int MinNHit_Theta = 3; // era 4
 static const int MaxNHit_Theta = 8;
 static const int MaxNHit = 100;
 

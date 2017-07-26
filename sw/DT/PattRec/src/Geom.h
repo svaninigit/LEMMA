@@ -17,7 +17,7 @@
 class Geom {
  public:
   // default constructor
-  Geom() { }
+  Geom();
 
   // destructor
   ~Geom(); 
@@ -30,6 +30,7 @@ class Geom {
   void printGeom();
   
  private:
+  int m_chtype;
   
 };
 #endif /*Geom_h*/
