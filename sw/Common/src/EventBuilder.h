@@ -35,9 +35,9 @@ private:
     Int_t           iev;
     Int_t           nhits;
     Int_t           subdet[100];
-    Double_t        xh[100];
-    Double_t        yh[100];
-    Double_t        zh[100];
+    Float_t        xh[100];
+    Float_t        yh[100];
+    Float_t        zh[100];
     Int_t           itrack[100];
     
     /// dt data file
@@ -46,7 +46,7 @@ private:
     int m_idt;
     int dtEvent, nseg;
     Int_t segN[2];
-    Float_t s1p[50],s2p[50], s3p[50], s4p[50], s5p[50], s6p[50], s7p[50], s8p[50];
+    Float_t s1p[2],s2p[2], s3p[2], s4p[2], s5p[2], s6p[2], s7p[2], s8p[2];
 
     bool m_debug;
 };

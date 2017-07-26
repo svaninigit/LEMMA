@@ -66,10 +66,10 @@ void EventBuilder::matchEvents(int nEvents){
         while(siN < dtN)
             siN=getSiEvent();
 
-        if(dtN==siN){
+//        if(dtN==siN){
             std::cout << "Event " << dtN << " matched! " << std::endl;
             dumpGlobalEvent();
-        }
+//        }
     }
     return;
 }
@@ -126,6 +126,7 @@ void EventBuilder::dumpGlobalEvent(){
     for(int ih=0 + nSiHits; ih<12 + nSiHits; ih++){
         xh[ih] = -999.;
         yh[ih] = -999.;
+        zh[ih] = -999.;
         subdet[ih] = 70;
     }
 
