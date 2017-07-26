@@ -117,16 +117,18 @@ int main(int argc, char **argv) {
     else if (p.execute == "geotest"){
         Geom * geo = new Geom();
 
-        for(int isl=2; isl <= 2; isl++){
-            //if (isl==2) isl=3;
-                for(int iw=1; iw < 100; iw++)
-                    for(int il=1; il <= 4; il++){
-                    std::cout << "SL " << isl << ", LAY " << il << ", WIRE " << iw;
-                    std::cout << "        ------------->        X wire " << geo->get_x_wire(11,isl,il,iw) << std::endl;
-                }
+        std::cout << "X WIRE POSITIONS " << std::endl;
+        for(int isl=1; isl <= 3; isl++)
+            for(int iw=1; iw < 60; iw++)
+                for(int il=1; il <= 1; il++)
+                        std::cout << "SL " << isl << ", LAY " << il << ", WIRE " << iw << " ---> X wire " << geo->get_x_wire(11,isl,il,iw) << std::endl;
+        
+        std::cout << "Y WIRE POSITIONS " << std::endl;
+         for(int isl=1; isl <= 3; isl++)
+            for(int il=1; il <= 4; il++)
+                 std::cout << "SL " << isl << ", Lay " << il << " ---> " << geo->get_y_wire(11,isl,il,1) << std::endl;
         }
 
-    }
     return 0;
 }
 

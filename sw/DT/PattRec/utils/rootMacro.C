@@ -30,11 +30,13 @@ gStyle->SetOptStat(1);
 gStyle->SetOptStat(1111);
 gStyle->SetOptFit(1);
 
-void dtplots()
+void dtplots(std::string file, int maxEvents)
 {
   TChain * T = new TChain("RADMU");
 //  T->Add("output/Radmufit_r4390_1000007ev_PR.root");
-  T->Add("output/Radmufit_r4390_2000001ev_PR.root");
+//  T->Add("output/Radmufit_r4390_3000001ev_PR.root");
+
+  T->Add(file.data());
 
   //book histograms
   // DTBX HITS
@@ -111,7 +113,7 @@ void dtplots()
   //cout << " number of events " << evnum << endl;
 
   //loop over the events
-  for (Int_t ientry=0 ; ientry < TMath::Min(100000,evnum); ientry ++)
+  for (Int_t ientry=0 ; ientry < TMath::Min(maxEvents,evnum); ientry ++)
   {
     if(floor(ientry/1000)*1000==ientry)
                 cout << "Event " << ientry << endl;

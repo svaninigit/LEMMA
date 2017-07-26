@@ -27,6 +27,7 @@ namespace {
         int runNum;
         int nEvents;
         std::string execute;
+        bool debug;
 
         Parameters(const char *hello = "Program options") : Options(hello) {
         add_options()
@@ -39,6 +40,7 @@ namespace {
         ("runNum",                 &runNum,                (int)0.,                                  "Run number ID")
         ("nEvents",                 &nEvents,                (int)10.,                                "number of events to read")
         ("execute",                 &execute,                 std::string("eventbuilder"), "Execution options: eventbuilder, PUT MORE IF NEEDED")
+        ("debug",                    &debug,                   (bool)0,                                 "Debugging flag")
         ;
         }
     } p;   // <-- INSTANCE //
@@ -65,6 +67,9 @@ int main(int argc, char **argv) {
         std::cout << "\n\n *** RUNNING event builder *** \n\n";
 
         EventBuilder *builder = new EventBuilder();
+        std::cout << "debug " << p.debug << std::endl;
+
+        builder->setDebug(p.debug);
         builder->openDataFiles(p.rootDTFile,p.inputSiFile,p.outputFile);
         builder->matchEvents(p.nEvents);
         builder->dumpOutput();

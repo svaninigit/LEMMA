@@ -63,7 +63,7 @@ ReaderROS8::~ReaderROS8() {
     fo_Tree = NULL;
   }
 
-  //   fclose(rawfile);
+  //fclose(rawfile);
   //fout.close();
 
   delete dump;
@@ -124,12 +124,12 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
 
         // SV 20170613 FIX not sure this is needed....
         TCanvas * fC1 = new TCanvas("ReadbackDisplayProgram", "Tomography Display", 5, 5, 800, 900);
-	_ttrigCalib->buildCanvasTSL(fC1);
-        _ttrigCalib->setCanvas(1); //ALTEA IMPORTANTE! 
-				   //in TTrigCalibration::setCanvas(int flag) viene inizializzata a 1 la variabile _nCanvas
-				   //che poi viene restituita dalla funzione TTrigCalibration::getCanvas()
-				   //con cui viene inizializzata la flag di TTrigCalibration::computeTTrig(int flag)
-				   //per cui alla fine vengono calcolati i ttrig dei SL e non quelli delle rob.
+        _ttrigCalib->buildCanvasTSL(fC1);
+        _ttrigCalib->setCanvas(1); //ALTEA IMPORTANTE!
+        //in TTrigCalibration::setCanvas(int flag) viene inizializzata a 1 la variabile _nCanvas
+        //che poi viene restituita dalla funzione TTrigCalibration::getCanvas()
+        //con cui viene inizializzata la flag di TTrigCalibration::computeTTrig(int flag)
+        //per cui alla fine vengono calcolati i ttrig dei SL e non quelli delle rob.
 				   
     }
 
