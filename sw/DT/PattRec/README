@@ -3,6 +3,8 @@ Sara Vanini - 20170726
 INSTRUCTIONS to run MB2 chamber pattern recognition at LEMMA testbeam
 ---------------------------------------------------------------------
 
+COMPILE AND RUN
+
 A. If the code has been modified:
   > make clean
   > make
@@ -25,3 +27,8 @@ C. To process a MB2 raw data file:
     root [1] dtplots("output/Radmufit_r*_*ev_PR.root",maxEventToAnalyse)
     
 D. the ntuple is processed toghether with Si raw file, see Common/ directory to run Event Builder and calibration, read Common/README    
+E. to process pattern recognition over 2 Mu (one in each half chamber), change the parameter in utils/parameters.cfg: execute=pattrec2Mu
+    two ntuples will be written in output for the pos and neg phi coordinates of the chamber
+    
+GEOMETRY
+To change the reference system see file Geom.cpp
