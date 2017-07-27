@@ -75,7 +75,9 @@ ReaderROS8::~ReaderROS8() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bool ttrig, bool n2chambers) {
+void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bool ttrig, bool n2chambers, int chside) {
+    /// NB chside=-1 reconstruct only negative side of phi orizontal coordinate, chside=1 only positive, chside=0 all chamber
+    m_chside = chside;
 
     /// --------- dumps initialization
     dump=new Save_HistosAndTree();
@@ -83,7 +85,7 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
         dump->set1chamber();
 
     if(CREATE_TREE){
-        fo_Tree=inout->openOUTRootFile(runN,maxEvent);
+        fo_Tree=inout->openOUTRootFile(runN,maxEvent,m_chside);
         dump->initTree();
         tree = new TTree("RADMU","radmu analysis");
         dump->bookTree(tree,n2chambers);
@@ -605,7 +607,7 @@ int ReaderROS8::readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCol
 
                 // SV 100203 add severe failure in case no channel is found in map
                 if(iter==chmap.end()) {
-                    cout << "ERROR : no channel is found in map - exit ! " << endl;
+                    //cout << "ERROR : no channel is found in map - exit ! " << endl;
                     return 0;
                 }
 
@@ -631,8 +633,15 @@ int ReaderROS8::readTDCGroup(FILE * infile, int & wordCount, int rosChID, HITCol
 
                     // create HIT and add HIT to HITCollection
                     if(getSe(iter->second) !=1 ) {
-                        hits->createHIT(evID,getSe(iter->second),getSL(iter->second),getLay(iter->second),getTube(iter->second),x_wire,y_wire,tdcID,rosChID,chID,convToNs*(float(rawtime/4.)),t0,ttrig);
-		        
+                        int sl = getSL(iter->second);
+                        if(m_chside==0)
+                            hits->createHIT(evID,getSe(iter->second),getSL(iter->second),getLay(iter->second),getTube(iter->second),x_wire,y_wire,tdcID,rosChID,chID,convToNs*(float(rawtime/4.)),t0,ttrig);
+                        else if (sl==2)
+                            hits->createHIT(evID,getSe(iter->second),getSL(iter->second),getLay(iter->second),getTube(iter->second),x_wire,y_wire,tdcID,rosChID,chID,convToNs*(float(rawtime/4.)),t0,ttrig);
+                        else if (m_chside*x_wire >0 && (sl==1 || sl==3)){
+                            hits->createHIT(evID,getSe(iter->second),getSL(iter->second),getLay(iter->second),getTube(iter->second),x_wire,y_wire,tdcID,rosChID,chID,convToNs*(float(rawtime/4.)),t0,ttrig);
+                        }
+
                         //ALTEA
                         //fout << "ev number:      " << numEvent << "		rawtime:      " << convToNs*(float(rawtime)/4.) << endl;
 			

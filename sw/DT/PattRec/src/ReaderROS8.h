@@ -60,7 +60,7 @@ public:
 
  // member functions
  void goAnalysis(TString fin, int maxEvent=100, int runN=0, int runTrig=0);
- void goAnalysis(TString fin, int maxEvent=100, int runN=0, int runTrig=0, bool ttrigs=0, bool n2chambers=0);
+ void goAnalysis(TString fin, int maxEvent=100, int runN=0, int runTrig=0, bool ttrigs=0, bool n2chambers=0, int chside=0);
 
  void fillMap();
  void checkMap();
@@ -92,6 +92,9 @@ private:
  TFile *fo_Tree;
  TTree *tree;
  TFile *fo_Histo;
+
+ int m_chside;
+
 
  // TOMTOOL classes
  RawHistos        * _rawHistos;

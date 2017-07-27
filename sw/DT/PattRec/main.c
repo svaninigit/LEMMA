@@ -53,7 +53,7 @@ namespace {
         ("nEvents",                 &nEvents,                (int)10.,                                "number of events to read")
         ("ttrigRunNum",         &ttrigRunNum,        (int)0.,                                 "Run number ID to compute time-trig calibration")
         ("n2chambers",         &n2chambers,         (bool)0,                               "Flag for activate 2 chambers analysis")
-        ("execute",                 &execute,                 std::string("pattrec"),         "Execution options: ttrig, pattrec, eventbuild")
+        ("execute",                 &execute,                 std::string("pattrec"),         "Execution options: ttrig, pattrec, pattrec2Mu, pattrec-")
 
         // UNPACK //
         ("unpack.debug",       &unpack.debug,     false,                                     "enable debugging dumps in unpacking code")
@@ -86,12 +86,12 @@ int main(int argc, char **argv) {
 //   analyze->goAnalysis(p.inFileName, p.nEvents, p.runNum, p.ttrigRunNum, p.ttrigFlag);
 
     //--- Recipe for ROS8 data
-    ReaderROS8 *reader=new ReaderROS8();
-    reader->setDebug(p.unpack.debug);
 
     /// ttrig computation
     if(p.execute=="ttrig"){
         std::cout << "\n\n *** RUNNING time-trigger computation *** \n\n";
+        ReaderROS8 *reader=new ReaderROS8();
+        reader->setDebug(p.unpack.debug);
         reader->goAnalysis(p.inputDTFile, p.nEvents, p.runNum, p.ttrigRunNum, 1, p.n2chambers);
         delete reader;
     }
@@ -99,14 +99,31 @@ int main(int argc, char **argv) {
     /// patter recognition
     else if (p.execute=="pattrec"){
         std::cout << "\n\n *** RUNNING pattern recognition *** \n\n";
+        ReaderROS8 *reader=new ReaderROS8();
+        reader->setDebug(p.unpack.debug);
         reader->goAnalysis(p.inputDTFile, p.nEvents, p.runNum, p.ttrigRunNum, 0, p.n2chambers);
         delete reader;
+    }
+    else if (p.execute=="pattrec2Mu"){
+        std::cout << "\n\n *** RUNNING pattern recognition : phi-left side of chamber*** \n\n";
+        ReaderROS8 *reader_neg=new ReaderROS8();
+        reader_neg->setDebug(p.unpack.debug);
+        reader_neg->goAnalysis(p.inputDTFile, p.nEvents, p.runNum, p.ttrigRunNum, 0, p.n2chambers,-1);
+        delete reader_neg;
+
+        std::cout << "\n\n *** RUNNING pattern recognition : phi-right side of chamber*** \n\n";
+        ReaderROS8 *reader_pos=new ReaderROS8();
+        reader_pos->setDebug(p.unpack.debug);
+        reader_pos->goAnalysis(p.inputDTFile, p.nEvents, p.runNum, p.ttrigRunNum, 0, p.n2chambers,+1);
+        delete reader_pos;
     }
 
     /// event builder
     else if (p.execute == "eventbuilder"){
         std::cout << "\n\n *** RUNNING event builder *** \n\n";
 
+        ReaderROS8 *reader=new ReaderROS8();
+        reader->setDebug(p.unpack.debug);
         EventBuilder *builder = new EventBuilder();
         builder->openDataFiles(p.rootDTFile,p.inputSiFile,p.outputFile);
         builder->matchEvents(p.nEvents);

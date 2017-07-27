@@ -81,14 +81,19 @@ FILE * Track_IO::openTXTFile(int runN, int maxEvent){
   return txtfile;
 }
 
-TFile * Track_IO::openOUTRootFile(int runN, int maxEvent){
+TFile * Track_IO::openOUTRootFile(int runN, int maxEvent, int chside){
   char fileNameT[200];
 
 //  if(lxradiomu)
 //    sprintf(fileNameT,"/data/radmu/Patt_Rec/Radmufit_r%d_%d_%dev_PR.root",runN,runID,maxEvent);
 //  else
 //      sprintf(fileNameT,"/data/tom_data/PattRec/RootFile/Radmufit_r%d_%d_%dev_PR.root",runN,runID,maxEvent);
-  sprintf(fileNameT,"./output/Radmufit_r%d_%dev_PR.root",runN,maxEvent);
+    if(chside==0)
+        sprintf(fileNameT,"./output/Run_%d_DT.root",runN,maxEvent);
+    else if (chside == -1)
+        sprintf(fileNameT,"./output/Run_%d_DT_neg.root",runN,maxEvent);
+    else if (chside == +1)
+        sprintf(fileNameT,"./output/Run_%d_DT_pos.root",runN,maxEvent);
 
   
   cout<<"Opening file to store Tree: "<<fileNameT<<endl;

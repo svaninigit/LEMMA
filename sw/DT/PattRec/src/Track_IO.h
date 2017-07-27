@@ -39,7 +39,7 @@ class Track_IO {
   FILE * openINFile(TString fin, int ID);
   FILE * openTXTFile(int runN, int maxEvent);
   ofstream * openOUTHBFile(int runN, int maxEvent);
-  TFile * openOUTRootFile(int runN, int maxEvent);
+  TFile * openOUTRootFile(int runN, int maxEvent, int chside=0);
   TFile * openOUTHistoFile(int runN, int maxEvent);
 
   private:
