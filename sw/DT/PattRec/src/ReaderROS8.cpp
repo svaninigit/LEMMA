@@ -159,7 +159,8 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
             Track *track = new Track();
             bool n2chambers=0;
             track->SelectTrack(hits,corr,n2chambers);
-            if(track->Track_IsGood()){
+
+            //if(track->Track_IsGood()){
 
                 if(DUMP_HISTOS)
                     dump->dumpHisto(track,hits,daqEvNum);
@@ -168,7 +169,7 @@ void ReaderROS8::goAnalysis(TString fin, int maxEvent, int runN, int runTrig, bo
                 if(DUMP_STAT)
                     dump->compute_Statistics(track,hits,daqEvNum);
 
-            }
+            //}
 
             // debug hits
             //hits->dumpHITCollection();

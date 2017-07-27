@@ -48,6 +48,10 @@ void dtplots(std::string file, int maxEvents)
   TH1F * htime_sl2 = new TH1F("htime_sl2","Drift time SL 2",600,-100,500);
   TH1F * htime_sl3 = new TH1F("htime_sl3","Drift time SL 3",600,-100,500);
 
+  TH1F * hSignal = new TH1F("hSignal","Signal per sl",3,1,4);
+  TH1F * hNoise = new TH1F("hNoise","Noise per sl",3,1,4);
+  TH1F * hSoverN = new TH1F("hSoverN","Signal over Noise per sl",3,1,4);
+
   TH1F * hocc_lay[12];
   for (int il=0; il<12; il++ ){
       std::string name = "htime_lay";
@@ -124,8 +128,27 @@ void dtplots(std::string file, int maxEvents)
     // ** RAW HITS
     hnhits->Fill(Nhits);
     for(int ih=0; ih < Nhits; ih++){
-        // fill occupancy
+        // layer
         int layer = lay[ih] - 1300;
+        int sl;
+        if(layer<=4)
+            sl=1;
+        else if(layer>=5 && layer<=8)
+            sl=2;
+        else if(layer>=8)
+            sl=3;
+
+        // fill signa to noise histograms
+        float tdriftMin = 0.;
+        float tdriftMax = 400.;
+
+        if(rawT[ih]>tdriftMin && rawT[ih]<tdriftMax)
+            hSignal->Fill(sl);
+        else
+            hNoise->Fill(sl);
+
+
+        // fill occupancy
         hocc_lay[layer-1]->Fill(tube[ih]);
 
         if(layer <=4){
@@ -259,6 +282,19 @@ void dtplots(std::string file, int maxEvents)
 
 
   //draw histograms
+  TCanvas * csn = new TCanvas("csn","csn",1500,1000);
+  csn->cd(1);
+//  csn->Divide(2,2);
+//  hSignal->DrawClone();
+//  csn->cd(2);
+//  hNoise->DrawClone();
+//  csn->cd(3);
+  hSignal->Divide(hNoise);
+  hSignal->Draw();
+  hSignal->SetTitle("Signal / Noise ");
+  Double_t norm = hSignal->GetEntries();
+  hSignal->Scale(1/norm);
+
   TCanvas * chit = new TCanvas("chit","chit",1500,1000);
   chit->Divide(2,2);
   chit->cd(1);

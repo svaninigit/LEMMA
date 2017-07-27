@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
         std::cout << "\n\n *** RUNNING pattern recognition *** \n\n";
         ReaderROS8 *reader=new ReaderROS8();
         reader->setDebug(p.unpack.debug);
-        reader->goAnalysis(p.inputDTFile, p.nEvents, p.runNum, p.ttrigRunNum, 0, p.n2chambers);
+        reader->goAnalysis(p.inputDTFile, p.nEvents, p.runNum, p.ttrigRunNum, 0, p.n2chambers,0);
         delete reader;
     }
     else if (p.execute=="pattrec2Mu"){
@@ -144,7 +144,18 @@ int main(int argc, char **argv) {
          for(int isl=1; isl <= 3; isl++)
             for(int il=1; il <= 4; il++)
                  std::cout << "SL " << isl << ", Lay " << il << " ---> " << geo->get_y_wire(11,isl,il,1) << std::endl;
-        }
+    }
+    else if (p.execute == "SoverN"){
+        std::cout << "\n\n *** RUNNING signalToNoise *** \n\n";
+        ReaderROS8 *reader=new ReaderROS8();
+        reader->setDebug(p.unpack.debug);
+        reader->goAnalysis(p.inputDTFile, p.nEvents, p.runNum, p.ttrigRunNum, 0, p.n2chambers,0);
+
+        int sl=1;
+        reader->getSoverN(sl);
+
+        delete reader;
+    }
 
     return 0;
 }

@@ -306,26 +306,26 @@ void Save_HistosAndTree::dumpHB(Track *track, HITCollection *hits,int numEvent,o
 
 void Save_HistosAndTree::dumpTree(Track *track, HITCollection *hits,int numEvent,TTree *tree){
   
-  if(track->Track_IsGood()){
-    if(track->Get_IsGood(0) && track->Get_IsGood(1)){
-      cleanTree();
+    if(DEBUG_TREE)
+      printf("Start filling tree...\n");
 
-      dumpTree_Hits(hits,numEvent,tree);
-      dumpTree_Track(track,hits,numEvent,tree);
-      
-      if(DEBUG_TREE) 
-        printf("Start filling tree...\n");
-      
-      tree->Fill();
+    cleanTree();
+
+    if(track->Track_IsGood()){
+        if(track->Get_IsGood(0) && track->Get_IsGood(1)){
+            dumpTree_Hits(hits,numEvent,tree);
+            dumpTree_Track(track,hits,numEvent,tree);
+        }
     }
-  }
+
+    tree->Fill();
   
-  return;
+    return;
 }
 
 
 void Save_HistosAndTree::dumpTree_Hits(HITCollection *hits,int numEvent,TTree *tree){
-  
+
   if(DEBUG_STOREHIT) 
     cout<<"N.hit: "<<hits->Get_NumberHITS()<<endl;
   
@@ -479,6 +479,7 @@ void Save_HistosAndTree::dumpTree_Track(Track *track, HITCollection *hits,int nu
 
       // compute residuals
       double res[8]={-999.,-999.,-999.,-999.,-999.,-999.,-999.,-999};
+      double xhit[8]={-999.,-999.,-999.,-999.,-999.,-999.,-999.,-999};
       for(int ih=0;ih<hits->Get_NumberHITS();ih++){
           HIT *hit=hits->hit(ih);
           int hlay = hit->L_ID();
@@ -505,10 +506,11 @@ void Save_HistosAndTree::dumpTree_Track(Track *track, HITCollection *hits,int nu
 
           // SV 20170724 for LEMMA tb fill with hX
           res[jres]= hX - (slope*(hit->y_wire_ID())+X0);
+          xhit[jres]=hX;
       }// end hit loop
 
       // fill....
-      fillVar(k,it,slope,X0,T0,chi2,res,it);
+      fillVar(k,it,slope,X0,T0,chi2,res,it,xhit);
 
 //      /// debugging
 //      std::cout << "*** RESIDUALS :";
@@ -1447,6 +1449,16 @@ void Save_HistosAndTree::initTree(){
   osl6r = new float[m_nmaxseg];
   osl7r = new float[m_nmaxseg];
   osl8r = new float[m_nmaxseg];
+
+  osxh1 = new float[m_nmaxseg];
+  osxh2 = new float[m_nmaxseg];
+  osxh3 = new float[m_nmaxseg];
+  osxh4 = new float[m_nmaxseg];
+  osxh5 = new float[m_nmaxseg];
+  osxh6 = new float[m_nmaxseg];
+  osxh7 = new float[m_nmaxseg];
+  osxh8 = new float[m_nmaxseg];
+
   osegS_glo = new float[m_nmaxseg];
   osegerS_glo = new float[m_nmaxseg];
   osegX_glo = new float[m_nmaxseg];
@@ -1495,6 +1507,16 @@ void Save_HistosAndTree::bookTree(TTree* tree,bool n2chambers)
   tree->Branch( "SEG_6r",  osl6r,   "l6r[ntes]/F" );
   tree->Branch( "SEG_7r",  osl7r,   "l7r[ntes]/F" );
   tree->Branch( "SEG_8r",  osl8r,   "l8r[ntes]/F" );
+
+  tree->Branch( "SEG_xh1",  osxh1,   "xh1[ntes]/F" );
+  tree->Branch( "SEG_xh2",  osxh2,   "xh2[ntes]/F" );
+  tree->Branch( "SEG_xh3",  osxh3,   "xh3[ntes]/F" );
+  tree->Branch( "SEG_xh4",  osxh4,   "xh4[ntes]/F" );
+  tree->Branch( "SEG_xh5",  osxh5,   "xh5[ntes]/F" );
+  tree->Branch( "SEG_xh6",  osxh6,   "xh6[ntes]/F" );
+  tree->Branch( "SEG_xh7",  osxh7,   "xh7[ntes]/F" );
+  tree->Branch( "SEG_xh8",  osxh8,   "xh8[ntes]/F" );
+
   if(n2chambers){
       tree->Branch( "SEG_ns_glo", &onseg_glo,  "ntes_glo/I" );
       tree->Branch( "SEG_sx_glo",  osegX_glo,  "X_glo[ntes_glo]/F" );
@@ -1535,7 +1557,17 @@ void Save_HistosAndTree::cleanTree() {
     osl6r[i] = -999.;
     osl7r[i] = -999.;
     osl8r[i] = -999.;
-  }
+
+    osxh1[i] = -999.;
+    osxh2[i] = -999.;
+    osxh3[i] = -999.;
+    osxh4[i] = -999.;
+    osxh5[i] = -999.;
+    osxh6[i] = -999.;
+    osxh7[i] = -999.;
+    osxh8[i] = -999.;
+ }
+
   for ( i = 0; i < onseg; i++ ){
     osegS_glo[i] = -999.;
     osegerS_glo[i] = -999.;
@@ -1575,28 +1607,40 @@ void Save_HistosAndTree::cleanTree() {
   return;
 }
 
-void Save_HistosAndTree::fillVar(int npc, int onseg, double m, double a, double t0, double chi2, double * res, int p)
+void Save_HistosAndTree::fillVar(int npc, int onseg, double m, double a, double t0, double chi2, double * res, int p, double  * xh)
 {
   
-  if(DEBUG_STORETRACK) 
+  if(DEBUG_STORETRACK)
     printf("Filling Variables...\n");
-  
+
   osegN[onseg] = npc;
   osegS[onseg] = m;
   osegX[onseg] = a;
   osegT0[onseg] = t0;
   osegK[onseg] = chi2;
+
   osl1r[onseg] = res[0];
   osl2r[onseg] = res[1];
   osl3r[onseg] = res[2];
   osl4r[onseg] = res[3];
-  
+
+  osxh1[onseg] = xh[0];
+  osxh2[onseg] = xh[1];
+  osxh3[onseg] = xh[2];
+  osxh4[onseg] = xh[3];
+
+
   if(p==0||p==2)
     {
       osl5r[onseg] = res[4];
       osl6r[onseg] = res[5];
       osl7r[onseg] = res[6];
       osl8r[onseg] = res[7];
+
+      osxh5[onseg] = xh[4];
+      osxh6[onseg] = xh[5];
+      osxh7[onseg] = xh[6];
+      osxh8[onseg] = xh[7];
     }
 
   if(DEBUG_STORETRACK) 

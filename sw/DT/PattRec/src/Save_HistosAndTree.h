@@ -56,7 +56,7 @@ class Save_HistosAndTree {
   void resetHistos();
   void deleteHistos();
   void fillVar_glo(int npc, int onseg, double m, double erm, double a, double era, double t0, double chi2, double * res, int p);
-  void fillVar(int npc, int onseg, double m, double a, double t0, double chi2, double * res, int p);
+  void fillVar(int npc, int onseg, double m, double a, double t0, double chi2, double * res, int p, double *xh);
   void initTree();
   void bookTree(TTree*, bool n2chambers=1);
   void cleanTree();
@@ -75,6 +75,7 @@ class Save_HistosAndTree {
   float * osegS, * osegX, * osegK, * osegT0;
   int   * osegN;
   float * osl1r, * osl2r, * osl3r, * osl4r, * osl5r, * osl6r, * osl7r, * osl8r;
+  float * osxh1,* osxh2,* osxh3,* osxh4,* osxh5,* osxh6,* osxh7,* osxh8;
   float * osegS_glo, * osegX_glo, * osegK_glo, * osegT0_glo;
   float * osegerS_glo, * osegerX_glo;
   int   * osegN_glo;
