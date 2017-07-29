@@ -485,8 +485,8 @@ int ReaderROS8::readEvent(FILE *infile, HITCollection * hits){
     /// event header: word from 0 to 7
 
     int runNum =  readWord(infile,wordCount);
-    int spillNum =  readWord(infile,wordCount);
     int evNum =  readWord(infile,wordCount);
+    int spillNum =  readWord(infile,wordCount);
     int res1 =  readWord(infile,wordCount);
     int rosOffset =  readWord(infile,wordCount);
     int puOffset =  readWord(infile,wordCount);
@@ -500,7 +500,7 @@ int ReaderROS8::readEvent(FILE *infile, HITCollection * hits){
 
     /// ROS board data
     int daqEvNum = readROS(infile,wordCount,rosOffset,hits);
-
+    
     /// PU data
     readPU(infile,wordCount,puOffset);
 
@@ -513,7 +513,8 @@ int ReaderROS8::readEvent(FILE *infile, HITCollection * hits){
     if(eventWordCountHeader != eventWordCountTrailer)
         cout << "ERROR in data unpacking : event header word counter != event trailer word counter" << endl;
 
-    return daqEvNum;
+    return evNum;
+    //return daqEvNum;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

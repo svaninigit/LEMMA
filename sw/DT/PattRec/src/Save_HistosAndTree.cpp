@@ -318,6 +318,7 @@ void Save_HistosAndTree::dumpTree(Track *track, HITCollection *hits,int numEvent
         }
     }
 
+    onevent = numEvent;
     tree->Fill();
   
     return;

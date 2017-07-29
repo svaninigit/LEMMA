@@ -40,7 +40,7 @@ void dtplots(std::string file, int maxEvents)
 
   //book histograms
   // DTBX HITS
-  TH1F * hnhits = new TH1F("hnhits","hit number per event",30,0.,30);
+  TH1F * hnhits = new TH1F("hnhits","hit number per event",100,0.,100);
   TH1F * hocc_sl1 = new TH1F("hocc_sl1","Occupancy SL 1",100,0,100);
   TH1F * hocc_sl2 = new TH1F("hocc_sl2","Occupancy SL 2",100,0,100);
   TH1F * hocc_sl3 = new TH1F("hocc_sl3","Occupancy SL 3",100,0,100);
