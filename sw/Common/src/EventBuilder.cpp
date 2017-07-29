@@ -253,7 +253,7 @@ void EventBuilder::openAlignments(std::string alignment_file){
 //   float phi0Theta0Mu        [2];
   
   std::string line;
-  ifstream myfile (alignment_file);
+  ifstream myfile (alignment_file.c_str());
   std::vector<float> vAli;
   if (myfile.is_open())
     {
