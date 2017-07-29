@@ -21,7 +21,8 @@
 
 namespace {
     static struct Parameters : Options {
-        std::string dirData;
+        std::string dirSiData;
+        std::string dirMuData;
         std::string rootDTFile;
         std::string inputSiFile;
         std::string outputFile;
@@ -36,7 +37,8 @@ namespace {
         ("help", "printout help")
 
         // GENERAL //
-        ("dirData",                &dirData,               std::string("test"),              "dir data files")
+        ("dirSiData",                &dirSiData,               std::string("test"),              "dir Si data files")
+        ("dirMuData",                &dirMuData,               std::string("test"),              "dir mu data files")
 /*         ("rootDTFile",             &rootDTFile,            std::string("test"),              "DT  chamber reconstructed data file") */
 /*         ("inputSiFile",            &inputSiFile,           std::string("test"),              "Si detectors raw data file") */
         ("outputFile",             &outputFile,            std::string("test"),              "Output file name")
@@ -77,7 +79,7 @@ int main(int argc, char **argv) {
         builder->setDebug(p.debug);
 	builder->openAlignments(alignment_file);
 	builder->setAlignment(p.doAlign);
-        builder->openDataFiles(p.dirData+"/Run_"+p.runNum+"_DT_pos",p.dirData+"/Run_"+p.runNum+"_Si.root",p.outputFile);
+        builder->openDataFiles(p.dirMuData+"/Run_"+p.runNum+"_DT_pos",p.dirSiData+"/Run_"+p.runNum+"_Si.root",p.outputFile);
         builder->matchEvents(p.nEvents);
         builder->dumpOutput();
 

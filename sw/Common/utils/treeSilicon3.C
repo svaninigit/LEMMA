@@ -7,6 +7,7 @@
 #include "TCanvas.h"
 #include "TMath.h"
 #include "TROOT.h"
+#include "TSystem.h"
 
 #include <iostream>
 #include <fstream>
@@ -51,6 +52,8 @@
 // // 00 -0.99000E+02 -0.99000E+02 -0.99000E+02 -0.99000E+02 -0.99000E+02
 // // 00 -0.99000E+02 -0.99000E+02 -0.99000E+02 -0.99000E+02 -0.99000E+02
 // // 00 -0.99000E+02 -0.99000E+02 -0.99000E+02 -0.99000E+02 -0.99000E+02
+
+
 
 const Int_t nSiLayers = 8; // Si layers
 const Int_t nDigis  = 48;
@@ -233,8 +236,13 @@ int fillEvent( vector<float> *vRecord, Si_t &SiEvent) {
 int readSievents(Int_t runN, Alignment_t Ali, bool debug) {
 
   Si_t SiEvent;
-  std::string srunN = std::to_string(runN);
-  TString outFile(TString("/home/rossin/cernbox/LEMMA/data/Run_")+TString(srunN)+TString("_Si.root"));
+  stringstream ss;
+  ss << runN;
+  string srunN = ss.str();
+  //  char *intStr = itoa(runN);
+  //string srunN = string(intStr);
+  //std::string srunN = std::to_string(runN);
+  TString outFile(TString("/home/insudaq/LEMMA/data/Run_")+TString(srunN)+TString("_Si.root"));
 
   TFile f(outFile,"recreate");
   TTree t("t","a Tree with data from TB Silicon");
@@ -269,7 +277,7 @@ int readSievents(Int_t runN, Alignment_t Ali, bool debug) {
   t2.Branch("itrack",  hititrack , "itrack[nhits]/I"    );
 
   string line;
-  ifstream myfile (TString("../../../data/run")+TString(srunN)+TString("_multi.dat"));
+  ifstream myfile (TString("/home/insudaq/LEMMA/data/run")+TString(srunN)+TString("_multi.dat"));
   if (myfile.is_open())
     {
       bool isNewRecord=true;
@@ -415,6 +423,7 @@ int readSievents(Int_t runN, Alignment_t Ali, bool debug) {
 //}   
 //
 void treeSilicon3(int runN, bool doAlignment = 0, int debug = 0) {
+
   Alignment_t Ali;
   int exitcode = 0;
   exitcode = loadAlignments(Ali,doAlignment,debug);
