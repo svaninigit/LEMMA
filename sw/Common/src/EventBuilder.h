@@ -11,6 +11,7 @@
 #include "TFile.h"
 #include "TTree.h"
 
+using namespace std;
 
 class EventBuilder
 {
